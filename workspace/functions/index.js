@@ -94,39 +94,22 @@ async function handleStatus(req, res) {
 exports.verifyFlow = onRequest(
   { secrets: ["ODIDIT_API_KEY"], cors: true },
   async (req, res) => {
-      const action = req.body.action || req.query.action;
-      if (action === 'startVerification') {
-          return handleStartVerification(req, res);
-      }
-      if (action === 'status') {
-          return handleStatus(req, res);
-      }
-      return res.status(404).send('Not Found');
+    // This is the correct way to handle CORS with the `cors` middleware
+    cors(req, res, () => {
+        const action = req.body.action || req.query.action;
+        if (action === 'startVerification') {
+            return handleStartVerification(req, res);
+        }
+        if (action === 'status') {
+            return handleStatus(req, res);
+        }
+        return res.status(404).send('Not Found');
+    });
   }
 );
 
 
 // --- onCall Functions ---
-
-exports.createOdiditSession = onCall({ secrets: ["ODIDIT_API_KEY"] }, async (request) => {
-    if (!process.env.ODIDIT_API_KEY) {
-        console.error("ODIDIT_API_KEY is not set.");
-        throw new HttpsError('internal', 'The verification service is not configured.');
-    }
-    console.log("Using ODIDIT_API_KEY to create a session.");
-    const sessionId = `mock-session-${Date.now()}`;
-    const qrCodeUrl = await QRCode.toDataURL(`https://0did.it/verify/${sessionId}`);
-    return { qrCodeUrl, sessionId };
-});
-
-exports.checkOdiditSession = onCall(async (request) => {
-    const { sessionId } = request.data;
-    if (!sessionId.startsWith('mock-session-')) {
-        throw new HttpsError('invalid-argument', 'Invalid session ID format.');
-    }
-    const isVerified = Math.random() < 0.2;
-    return { status: isVerified ? 'VERIFIED' : 'PENDING' };
-});
 
 exports.sendVerificationCode = onCall(async (request) => {
     const { target, type } = request.data;

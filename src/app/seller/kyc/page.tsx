@@ -209,18 +209,12 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     });
   };
   
-  const checkUserExists = async (field: 'email' | 'phone', value: string) => {
+  const checkUserExists = async (field: 'email' | 'phone', value: string): Promise<boolean> => {
     try {
-      const res = await fetch('/api/check-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ field, value }),
-      });
-      if (!res.ok) {
-        throw new Error('Network response was not ok.');
-      }
-      const data = await res.json();
-      return data.exists;
+        const functions = getFunctions(getFirestoreDb().app);
+        const checkUser = httpsCallable(functions, 'checkUserExists');
+        const result: any = await checkUser({ field, value });
+        return result.data.exists;
     } catch (e) {
       console.error("Validation error:", e);
       toast({
@@ -243,7 +237,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   }, [form.email, existingData?.email]);
 
   const checkPhoneExists = useCallback(async () => {
-    const fullPhone = `+91 ${form.phone}`;
+    const fullPhone = `+91${form.phone}`;
     if (!/^\d{10}$/.test(form.phone) || fullPhone === existingData?.phone) return;
     const exists = await checkUserExists('phone', fullPhone);
     if (exists) {
@@ -956,3 +950,5 @@ export default function KYCPage() {
         </div>
     );
 }
+
+    
