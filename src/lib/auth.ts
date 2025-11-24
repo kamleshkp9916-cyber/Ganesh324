@@ -226,7 +226,7 @@ export function getAuthActions(
             delete (sellerData as any).confirmPassword;
             
             // This will now update the existing anonymous user's document with the full data
-            await createUserData(user, 'seller', sellerData);
+            await updateUserData(user.uid, sellerData as UserData);
             
             await sendEmailVerification(user);
             

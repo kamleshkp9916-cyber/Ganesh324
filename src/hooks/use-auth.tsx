@@ -4,17 +4,19 @@
 import { useEffect, useState, createContext, useContext, useMemo } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { FirebaseContext, useFirebase } from '@/firebase/provider';
+import { FirebaseContext } from '@/firebase/provider';
 import { createUserData, getUserData, UserData } from "@/lib/follow-data";
 import { getAuthActions } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
+import { Auth } from 'firebase/auth';
+import { FirebaseApp } from 'firebase/app';
 
 interface AuthContextType {
   user: User | null;
   userData: UserData | null;
   loading: boolean;
-  authReady: boolean;
+  authReady: boolean; // Indicates if the initial auth check is done
   actions: ReturnType<typeof getAuthActions>;
 }
 
@@ -40,6 +42,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!firebaseContext || !firebaseContext.auth || !firebaseContext.firestore) {
+      setLoading(false);
+      setAuthReady(true);
       return;
     }
     
@@ -47,21 +51,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       setLoading(true);
-      setAuthReady(false);
-      setUser(firebaseUser);
-
+      
       if (firebaseUser) {
+        setUser(firebaseUser);
         const userDocRef = doc(firestore, 'users', firebaseUser.uid);
-        const unsubscribeFirestore = onSnapshot(userDocRef, async (doc) => {
+        const unsubscribeFirestore = onSnapshot(userDocRef, (doc) => {
           if (doc.exists()) {
             setUserData(doc.data() as UserData);
-          } else if (!firebaseUser.isAnonymous) { // Don't create data for anon users if it doesn't exist
-            let data = await getUserData(firebaseUser.uid);
-            if (!data) {
-                await createUserData(firebaseUser, 'customer');
-                data = await getUserData(firebaseUser.uid);
-            }
-            setUserData(data);
+          } else {
+            setUserData(null);
           }
           setLoading(false);
           setAuthReady(true);

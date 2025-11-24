@@ -27,7 +27,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useLocalStorage } from "@/hooks/use-local-storage";
-import { getFunctions, httpsCallable } from "firebase/functions";
 import { getFirestoreDb } from "@/lib/firebase-db";
 import { Skeleton } from "@/components/ui/skeleton";
 import { signInAnonymously } from "firebase/auth";
@@ -319,11 +318,11 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     }
     setVerif({ state: "PENDING", message: "Contacting verification service..." });
     try {
-        const functionUrl = `https://us-central1-streamcart-login.cloudfunctions.net/verifyFlow/startVerification`;
+        const functionUrl = `https://us-central1-streamcart-login.cloudfunctions.net/verifyFlow`;
         const response = await fetch(functionUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: user.uid }),
+            body: JSON.stringify({ action: 'startVerification', userId: user.uid }),
         });
 
         if (!response.ok) {
@@ -338,8 +337,11 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
         
         const pollInterval = setInterval(async () => {
             try {
-                const statusUrl = `https://us-central1-streamcart-login.cloudfunctions.net/verifyFlow/status?sessionId=${sessionId}`;
-                const statusResponse = await fetch(statusUrl);
+                const statusResponse = await fetch(functionUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'status', sessionId: sessionId }),
+                });
                 const result = await statusResponse.json();
                 
                 if (result.status === 'VERIFIED') {
@@ -798,18 +800,18 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
 }
 
 export default function KYCPage() {
-    const { user, userData, auth, authReady } = useAuth();
+    const { user, userData, authReady, loading } = useAuth();
     const router = useRouter();
     const [isClient, setIsClient] = useState(false);
     
     useEffect(() => {
         setIsClient(true);
         if (isClient && authReady && !user) {
-            signInAnonymously(auth).catch((error) => {
+            signInAnonymously(getFirestoreDb().app.options.auth!).catch((error) => {
                 console.error("Anonymous sign-in failed:", error);
             });
         }
-    }, [isClient, authReady, user, auth]);
+    }, [isClient, authReady, user]);
     
     const initialProgress = useMemo(() => {
         return Math.round(((0 + 1) / (steps.length)) * 100);
@@ -827,7 +829,7 @@ export default function KYCPage() {
         router.refresh(); // This will re-trigger the check in useEffect
     };
 
-    if (!isClient || !authReady || (authReady && !user)) {
+    if (!isClient || loading || !authReady) {
         return (
             <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
                 <LoadingSpinner />
