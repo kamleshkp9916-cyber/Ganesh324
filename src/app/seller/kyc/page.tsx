@@ -319,35 +319,25 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     }
     setVerif({ state: "PENDING", message: "Contacting verification service..." });
     try {
-        const functionUrl = `https://us-central1-streamcart-login.cloudfunctions.net/verifyFlow`;
-        const response = await fetch(functionUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'startVerification', userId: user.uid }),
-        });
-
-        if (!response.ok) {
-            const errorBody = await response.json();
-            throw new Error(errorBody.error || 'Failed to start verification.');
-        }
-
-        const { sessionId, qrDataUrl } = await response.json();
+        const functions = getFunctions();
+        const startVerification = httpsCallable(functions, 'verifyFlow');
+        const response: any = await startVerification({ action: 'startVerification', userId: user.uid });
+        const { sessionId, qrDataUrl } = response.data;
         
         setQrDataUrl(qrDataUrl);
         setVerif({ state: "PENDING", message: "Scan the QR code with your phone to complete verification." });
         
         const pollInterval = setInterval(async () => {
             try {
-                const statusUrl = `${functionUrl}?sessionId=${sessionId}`;
-                const statusResponse = await fetch(statusUrl); // GET request
-                const result = await statusResponse.json();
+                const statusFunction = httpsCallable(functions, 'verifyFlow');
+                const result: any = await statusFunction({ action: 'status', sessionId });
                 
-                if (result.status === 'VERIFIED') {
+                if (result.data.status === 'VERIFIED') {
                     clearInterval(pollInterval);
                     setVerif({ state: "VERIFIED", message: "Verification successful! You can now proceed." });
                     toast({ title: "Verification Successful!", description: "Proceeding to the next step." });
                     setTimeout(() => next(), 1500);
-                } else if (result.status === 'FAILED' || result.status === 'ERROR') {
+                } else if (result.data.status === 'FAILED' || result.data.status === 'ERROR') {
                      clearInterval(pollInterval);
                      setVerif({ state: "FAILED", message: "Verification failed. Please try again." });
                 }
@@ -545,7 +535,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
             )}
 
             {steps[current].key === "biz" && (
-              <Section title="Business Details" icon={<Building2 className="w-5 h-5"/>} hasError={(existingData as any)?.stepsToFix?.includes('biz')}>
+              <Section title="Business Details" icon={<Building2 className="w-5 h-5"/>} hasError={existingData?.stepsToFix?.includes('biz')}>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium">Business type *</label>
@@ -580,7 +570,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
             )}
 
             {steps[current].key === "addr" && (
-              <Section title="Address & Pickup" icon={<MapPin className="w-5 h-5"/>} hasError={(existingData as any)?.stepsToFix?.includes('addr')}>
+              <Section title="Address & Pickup" icon={<MapPin className="w-5 h-5"/>} hasError={existingData?.stepsToFix?.includes('addr')}>
                  <p className="text-sm text-muted-foreground mb-4">Please provide an accurate address. This is mandatory for our delivery partners to arrange pickup for your products. Incorrect details may lead to delays or order cancellations.</p>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -615,7 +605,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
             )}
 
             {steps[current].key === "bank" && (
-              <Section title="Tax & Bank" icon={<Banknote className="w-5 h-5"/>} hasError={(existingData as any)?.stepsToFix?.includes('bank')}>
+              <Section title="Tax & Bank" icon={<Banknote className="w-5 h-5"/>} hasError={existingData?.stepsToFix?.includes('bank')}>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium">PAN *</label>
@@ -641,7 +631,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
             )}
 
             {steps[current].key === "kyc" && (
-              <Section title="Identity — 0DIDit" icon={<ShieldCheck className="w-5 h-5"/>} hasError={(existingData as any)?.stepsToFix?.includes('kyc')}>
+              <Section title="Identity — 0DIDit" icon={<ShieldCheck className="w-5 h-5"/>} hasError={existingData?.stepsToFix?.includes('kyc')}>
                 <div className="space-y-4 text-center flex flex-col items-center">
                     {verif.state === 'IDLE' && (
                         <>
@@ -801,7 +791,7 @@ export default function KYCPage() {
     const { user, userData, authReady } = useAuth();
     const router = useRouter();
     const [isClient, setIsClient] = useState(false);
-    const { actions } = useAuth();
+    const { initiateAnonymousSignIn } = useAuthActions();
     
     useEffect(() => {
         setIsClient(true);
@@ -809,10 +799,9 @@ export default function KYCPage() {
     
     useEffect(() => {
         if (isClient && authReady && !user) {
-            // Use the non-blocking version from your auth actions
-            actions.initiateAnonymousSignIn();
+            initiateAnonymousSignIn();
         }
-    }, [isClient, authReady, user, actions]);
+    }, [isClient, authReady, user, initiateAnonymousSignIn]);
     
     const initialProgress = useMemo(() => {
         return Math.round(((0 + 1) / (steps.length)) * 100);
