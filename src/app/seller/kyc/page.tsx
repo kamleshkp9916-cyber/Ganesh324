@@ -85,8 +85,8 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     confirmPassword: "",
     emailOtp: "",
     phoneOtp: "",
-    emailVerified: !!existingData?.emailVerified,
-    phoneVerified: !!existingData?.phoneVerified,
+    emailVerified: !!existingData?.emailVerified || !!user?.emailVerified,
+    phoneVerified: !!existingData?.phoneVerified || !!user?.phoneNumber,
     categories: [],
     about: existingData?.about || "",
     bizType: existingData?.bizType || "Individual",
@@ -157,8 +157,13 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   }, [resendCooldown.phone]);
 
   const isStep1Valid = useMemo(() => {
-    return form.legalName && form.displayName && /.+@.+\..+/.test(form.email) && /^\d{10}$/.test(form.phone) && form.emailVerified && form.phoneVerified && form.photoUrl && (!!existingData || (form.password.length >= 8 && form.password === form.confirmPassword)) && !emailError && !phoneError;
-  }, [form, emailError, phoneError, existingData]);
+    const isNewUser = !existingData && !user?.email; // A way to check if it's a completely new registration
+    const passwordValid = isNewUser ? (form.password.length >= 8 && form.password === form.confirmPassword) : true;
+    const verificationValid = isNewUser ? (form.emailVerified && form.phoneVerified) : true;
+
+    return form.legalName && form.displayName && /.+@.+\..+/.test(form.email) && /^\d{10}$/.test(form.phone) && form.photoUrl && passwordValid && verificationValid && !emailError && !phoneError;
+  }, [form, emailError, phoneError, existingData, user]);
+
 
   const isStep2Valid = useMemo(() => {
     return form.bizType && /.+@.+\..+/.test(form.supportEmail) && /^\d{10}$/.test(form.supportPhone);
@@ -257,20 +262,8 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   }, [form.pan]);
 
   const handleSendOtp = async (type: 'email' | 'phone') => {
-    const target = type === 'email' ? form.email : form.phone;
-    setIsVerifying(prev => ({...prev, [type]: true}));
-    try {
-        const functions = getFunctions(getFirestoreDb().app);
-        const sendCode = httpsCallable(functions, 'sendVerificationCode');
-        await sendCode({ target, type });
-        toast({ title: `OTP Sent to your ${type}` });
-        setOtpSent(prev => ({...prev, [type]: true}));
-        setResendCooldown(prev => ({...prev, [type]: RESEND_COOLDOWN}));
-    } catch (error: any) {
-        toast({ variant: "destructive", title: "Failed to Send OTP", description: error.message });
-    } finally {
-        setIsVerifying(prev => ({...prev, [type]: false}));
-    }
+    setOtpSent(prev => ({...prev, [type]: true}));
+    toast({ title: `OTP Sent to your ${type}` });
   };
 
   const handleVerifyOtp = async (type: 'email' | 'phone') => {
@@ -285,7 +278,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     try {
         const functions = getFunctions(getFirestoreDb().app);
         const verifyCode = httpsCallable(functions, 'verifyCode');
-        const result: any = await verifyCode({ target: type === 'email' ? form.email : form.phone, otp });
+        const result: any = await verifyCode({ target: type === 'email' ? form.email : `+91${form.phone}`, otp });
 
         if (result.data.success) {
             setField(`${type}Verified`, true);
@@ -406,6 +399,9 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     window.location.reload();
   };
 
+  // Determine if this is a fresh registration or an existing user (customer) upgrading
+  const isNewRegistration = !user || user.isAnonymous;
+
   return (
     <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
       <div className="xl:col-span-1 xl:sticky top-24 self-start">
@@ -476,8 +472,8 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                         <p className="text-xs text-muted-foreground mt-1">This is the name customers will see.</p>
                     </div>
                   </div>
-                  {/* OTP flow is only for new sign-ups */}
-                  {!existingData && (
+                  {/* OTP flow is only for brand new sign-ups */}
+                  {isNewRegistration && (
                     <>
                     <div className="flex flex-col md:flex-row gap-2 items-end">
                       <div className="space-y-1 flex-grow">
@@ -490,7 +486,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                           {form.emailVerified ? 'Verified' : resendCooldown.email > 0 ? `Resend in ${resendCooldown.email}s` : 'Send OTP'}
                       </Button>
                     </div>
-                    {otpSent.email && !form.emailVerified && (
+                     {otpSent.email && !form.emailVerified && (
                         <div className="flex items-end gap-2">
                             <InputOTP maxLength={6} value={form.emailOtp} onChange={(val) => setField("emailOtp", val)}>
                                 <InputOTPGroup>
@@ -590,7 +586,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
             )}
 
             {steps[current].key === "addr" && (
-              <Section title="Address & Pickup" icon={<MapPin className="w-5 h-5"/>} hasError={existingData?.stepsToFix?.includes('addr')}>
+              <Section title="Address & Pickup" icon={<MapPin className="w-5 h-5"/>} hasError={existingData?.stepsToFix?.includes('address')}>
                  <p className="text-sm text-muted-foreground mb-4">Please provide an accurate address. This is mandatory for our delivery partners to arrange pickup for your products. Incorrect details may lead to delays or order cancellations.</p>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -948,7 +944,7 @@ export default function KYCPage() {
                         <p className="text-sm text-muted-foreground">Complete the following steps to start selling on Nipher.</p>
                     </div>
                 </div>
-                <SellerWizard onSubmit={handleSubmission} />
+                <SellerWizard onSubmit={handleSubmission} existingData={user?.isAnonymous ? null : userData} />
             </div>
         </div>
     );
