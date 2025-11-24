@@ -34,15 +34,22 @@ exports.verifyFlow = onRequest(
 
         if (action === 'startVerification') {
             try {
-                const { userId } = req.body || {};
-                if (!userId) return res.status(400).json({ error: "userId is required" });
+                const { userId, email } = req.body || {};
+                if (!userId || !email) return res.status(400).json({ error: "userId and email are required" });
+
+                // Security Check: Verify the email matches the authenticated user
+                const userRecord = await admin.auth().getUser(userId);
+                if (userRecord.email !== email) {
+                    return res.status(403).json({ error: "Email mismatch. You can only verify your own identity." });
+                }
 
                 const sessionId = makeId(16);
                 const sessionRef = db.collection("idVerifications").doc(sessionId);
                 await sessionRef.set({
-                userId,
-                status: "pending",
-                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                    userId,
+                    email,
+                    status: "pending",
+                    createdAt: admin.firestore.FieldValue.serverTimestamp(),
                 });
 
                 const mobileUrl = `https://your-deployed-app-url/verify-mobile?sessionId=${sessionId}`;
@@ -52,6 +59,9 @@ exports.verifyFlow = onRequest(
 
             } catch (err) {
                 console.error("startVerification error", err);
+                if (err.code === 'auth/user-not-found') {
+                    return res.status(404).json({ error: "User not found." });
+                }
                 return res.status(500).json({ error: err.message || "internal" });
             }
         }
@@ -86,6 +96,23 @@ exports.verifyFlow = onRequest(
 
 
 // --- onCall Functions ---
+
+exports.checkUserExists = onCall(async (request) => {
+    const { field, value } = request.data;
+    if (!field || !value) {
+      throw new HttpsError('invalid-argument', 'The function must be called with "field" and "value" arguments.');
+    }
+  
+    try {
+      const usersRef = db.collection('users');
+      const querySnapshot = await usersRef.where(field, '==', value).limit(1).get();
+      return { exists: !querySnapshot.empty };
+    } catch (error) {
+      console.error("Error checking user existence:", error);
+      throw new HttpsError('internal', 'Could not check user existence.');
+    }
+});
+
 
 exports.sendVerificationCode = onCall(async (request) => {
     const { target, type } = request.data;
@@ -127,16 +154,38 @@ exports.verifyCode = onCall(async (request) => {
 });
 
 exports.createAdminUser = onCall(async (request) => {
-    const { data, context } = request;
+    const { context, data } = request;
     if (context.auth?.token?.role !== 'admin') {
         throw new HttpsError('permission-denied', 'You must be an admin.');
     }
-    const { email, password, firstName, lastName } = data;
+    const { email, password, firstName, lastName, blockedPaths } = data;
     if (!email || !password || !firstName || !lastName) {
         throw new HttpsError('invalid-argument', 'Missing required user information.');
     }
-    // Logic to create admin user would go here...
-    return { success: true };
+
+    try {
+        const userRecord = await admin.auth().createUser({
+            email: email,
+            password: password,
+            displayName: `${firstName} ${lastName}`,
+        });
+
+        await admin.auth().setCustomUserClaims(userRecord.uid, { role: 'admin' });
+
+        await db.collection('users').doc(userRecord.uid).set({
+            uid: userRecord.uid,
+            displayName: `${firstName} ${lastName}`,
+            email: email,
+            role: 'admin',
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            blockedPaths: blockedPaths || [],
+        });
+
+        return { success: true, uid: userRecord.uid };
+    } catch (error) {
+        console.error("Error creating admin user:", error);
+        throw new HttpsError('internal', 'Could not create admin user.');
+    }
 });
 
 exports.updateLastLogin = onCall(async (request) => {
@@ -163,7 +212,7 @@ exports.updateLastLogin = onCall(async (request) => {
 // --- Firestore Triggers (v2) ---
 
 exports.generatePublicId = onDocumentWritten("users/{userId}", async (event) => {
-    if (event.data.before.exists()) {
+    if (event.data.before.exists) {
         return null;
     }
 
