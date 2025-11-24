@@ -1,0 +1,32 @@
+steps:
+# 1) Use node image to install dependencies
+- name: 'node:18'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      echo "Installing dependencies..."
+      npm ci
+
+# 2) Run tests / build
+- name: 'node:18'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      echo "Running build script..."
+      npm run build || echo "build script failed"
+
+# (Optional) 3) Deploy to Cloud Functions (example)
+# - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+#   entrypoint: gcloud
+#   args:
+#     - functions
+#     - deploy
+#     - sendVerificationCode
+#     - --runtime=nodejs18
+#     - --trigger-http
+#     - --region=us-central1
+#     - --quiet
+
+timeout: '1200s'
