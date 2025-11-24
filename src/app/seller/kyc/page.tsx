@@ -27,9 +27,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import { getFirestoreDb } from "@/lib/firebase-db";
 import { Skeleton } from "@/components/ui/skeleton";
-import { signInAnonymously } from "firebase/auth";
+import { signInAnonymously, getAuth } from "firebase/auth";
 
 const SELLER_KYC_DRAFT_KEY = 'sellerKycDraft';
 const SELLER_KYC_STEP_KEY = 'sellerKycStep';
@@ -109,7 +110,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const [form, setForm] = useLocalStorage<any>(SELLER_KYC_DRAFT_KEY, initialFormState);
   const [isFormDirty, setIsFormDirty] = useState(false);
   
-    const [verif, setVerif] = useState<{ state: "IDLE" | "PENDING" | "VERIFIED" | "FAILED", message: string }>({ state: existingData?.isNipherVerified ? 'VERIFIED' : "IDLE", message: existingData?.isNipherVerified ? 'Verification previously completed.' : '' });
+    const [verif, setVerif] = useState<{ state: "IDLE" | "PENDING" | "VERIFIED" | "FAILED", message: string }>({ state: (existingData as any)?.isNipherVerified ? 'VERIFIED' : "IDLE", message: (existingData as any)?.isNipherVerified ? 'Verification previously completed.' : '' });
   const [isVerifying, setIsVerifying] = useState({ email: false, phone: false, aadhaar: false, face: false });
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(form.photoUrl || null);
@@ -337,11 +338,8 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
         
         const pollInterval = setInterval(async () => {
             try {
-                const statusResponse = await fetch(functionUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'status', sessionId: sessionId }),
-                });
+                const statusUrl = `${functionUrl}?sessionId=${sessionId}`;
+                const statusResponse = await fetch(statusUrl); // GET request
                 const result = await statusResponse.json();
                 
                 if (result.status === 'VERIFIED') {
@@ -443,7 +441,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
         <AnimatePresence mode="popLayout">
           <motion.div key={current} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-4">
             {steps[current].key === "basic" && (
-              <Section title="Basic Info" icon={<User2 className="w-5 h-5"/>} hasError={existingData?.stepsToFix?.includes('basic')}>
+              <Section title="Basic Info" icon={<User2 className="w-5 h-5"/>} hasError={(existingData as any)?.stepsToFix?.includes('basic')}>
                 <div className="space-y-4">
                   <div className="flex items-center gap-4">
                       <Avatar className="h-24 w-24">
@@ -547,7 +545,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
             )}
 
             {steps[current].key === "biz" && (
-              <Section title="Business Details" icon={<Building2 className="w-5 h-5"/>} hasError={existingData?.stepsToFix?.includes('biz')}>
+              <Section title="Business Details" icon={<Building2 className="w-5 h-5"/>} hasError={(existingData as any)?.stepsToFix?.includes('biz')}>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium">Business type *</label>
@@ -582,7 +580,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
             )}
 
             {steps[current].key === "addr" && (
-              <Section title="Address & Pickup" icon={<MapPin className="w-5 h-5"/>} hasError={existingData?.stepsToFix?.includes('address')}>
+              <Section title="Address & Pickup" icon={<MapPin className="w-5 h-5"/>} hasError={(existingData as any)?.stepsToFix?.includes('addr')}>
                  <p className="text-sm text-muted-foreground mb-4">Please provide an accurate address. This is mandatory for our delivery partners to arrange pickup for your products. Incorrect details may lead to delays or order cancellations.</p>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -617,7 +615,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
             )}
 
             {steps[current].key === "bank" && (
-              <Section title="Tax & Bank" icon={<Banknote className="w-5 h-5"/>} hasError={existingData?.stepsToFix?.includes('bank')}>
+              <Section title="Tax & Bank" icon={<Banknote className="w-5 h-5"/>} hasError={(existingData as any)?.stepsToFix?.includes('bank')}>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium">PAN *</label>
@@ -643,14 +641,14 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
             )}
 
             {steps[current].key === "kyc" && (
-              <Section title="Identity — 0DIDit" icon={<ShieldCheck className="w-5 h-5"/>} hasError={existingData?.stepsToFix?.includes('kyc')}>
+              <Section title="Identity — 0DIDit" icon={<ShieldCheck className="w-5 h-5"/>} hasError={(existingData as any)?.stepsToFix?.includes('kyc')}>
                 <div className="space-y-4 text-center flex flex-col items-center">
                     {verif.state === 'IDLE' && (
                         <>
                             <div className="p-3 rounded-xl bg-gray-50 text-sm max-w-md mx-auto">
                                 Verify your identity using 0DIDit for a secure and fast verification process. You will be prompted to scan a QR code with your phone.
                             </div>
-                            <Button onClick={handleGenerateVerification}>Generate Verification Link</Button>
+                            <Button onClick={handleGenerateVerification} disabled={!user}>Generate Verification Link</Button>
                         </>
                     )}
 
@@ -690,7 +688,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
             )}
             
             {steps[current].key === "policies" && (
-                <Section title="Policies & Preview" icon={<FileSignature className="w-5 h-5"/>} hasError={existingData?.stepsToFix?.includes('policies')}>
+                <Section title="Policies & Preview" icon={<FileSignature className="w-5 h-5"/>} hasError={(existingData as any)?.stepsToFix?.includes('policies')}>
                   <div className="space-y-6">
                      <Card>
                         <CardHeader>
@@ -800,18 +798,21 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
 }
 
 export default function KYCPage() {
-    const { user, userData, authReady, loading } = useAuth();
+    const { user, userData, authReady } = useAuth();
     const router = useRouter();
     const [isClient, setIsClient] = useState(false);
+    const { actions } = useAuth();
     
     useEffect(() => {
         setIsClient(true);
+    }, []);
+    
+    useEffect(() => {
         if (isClient && authReady && !user) {
-            signInAnonymously(getFirestoreDb().app.options.auth!).catch((error) => {
-                console.error("Anonymous sign-in failed:", error);
-            });
+            // Use the non-blocking version from your auth actions
+            actions.initiateAnonymousSignIn();
         }
-    }, [isClient, authReady, user]);
+    }, [isClient, authReady, user, actions]);
     
     const initialProgress = useMemo(() => {
         return Math.round(((0 + 1) / (steps.length)) * 100);
@@ -829,7 +830,7 @@ export default function KYCPage() {
         router.refresh(); // This will re-trigger the check in useEffect
     };
 
-    if (!isClient || loading || !authReady) {
+    if (!isClient || !authReady) {
         return (
             <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
                 <LoadingSpinner />

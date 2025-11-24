@@ -37,13 +37,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return getAuthActions(firebaseContext.auth, firebaseContext.firebaseApp, router, toast);
     }
     // Return a dummy object if context is not ready, to prevent errors on initial render
-    return getAuthActions({} as any, {} as any, {} as any, () => {});
+    return getAuthActions({} as Auth, {} as FirebaseApp, {} as typeof router, () => {});
   }, [firebaseContext, router, toast]);
 
   useEffect(() => {
     if (!firebaseContext || !firebaseContext.auth || !firebaseContext.firestore) {
-      setLoading(false);
-      setAuthReady(true);
+      // Still waiting for Firebase services from the parent provider.
+      // We set authReady to false because we can't check auth state yet.
+      setAuthReady(false);
+      setLoading(true);
       return;
     }
     

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, sendPasswordResetEmail, User, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, getAdditionalUserInfo, updateProfile, setPersistence, browserSessionPersistence, Auth, linkWithCredential, EmailAuthProvider } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, sendPasswordResetEmail, User, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, getAdditionalUserInfo, updateProfile, setPersistence, browserSessionPersistence, Auth, linkWithCredential, EmailAuthProvider, signInAnonymously } from "firebase/auth";
 import { FirebaseApp } from "firebase/app";
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { createUserData, updateUserData, UserData } from "./follow-data";
@@ -253,6 +253,19 @@ export function getAuthActions(
         }
     };
     
+    const initiateAnonymousSignIn = async () => {
+        try {
+            await signInAnonymously(auth);
+        } catch (error) {
+            console.error("Anonymous sign-in failed:", error);
+            toast({
+                title: "Session Error",
+                description: "Could not start a temporary session. Please refresh the page.",
+                variant: "destructive",
+            });
+        }
+    };
+
     const updateUserProfile = async (user: User, data: Partial<UserData>) => {
         const storage = getStorage(firebaseApp);
         const { displayName } = data;
@@ -327,6 +340,7 @@ export function getAuthActions(
         handleCustomerSignUp, 
         handleAdminSignUp, 
         handleSellerSignUp, 
+        initiateAnonymousSignIn,
         updateUserProfile 
     };
 }
