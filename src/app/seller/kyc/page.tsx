@@ -211,14 +211,10 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const checkEmailExists = useCallback(async () => {
     if (!/.+@.+\..+/.test(form.email) || form.email === existingData?.email) return;
     try {
-        const response = await fetch('https://us-central1-streamcart-login.cloudfunctions.net/checkEmailExists', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: form.email }),
-        });
-        if (!response.ok) throw new Error('Network response was not ok.');
-        const result = await response.json();
-        if (result.exists) {
+        const functions = getFunctions(getFirestoreDb().app);
+        const checkEmail = httpsCallable(functions, 'checkEmailExists');
+        const result: any = await checkEmail({ email: form.email });
+        if (result.data.exists) {
             setEmailError("This email is already registered. Please use a different one.");
         } else {
             setEmailError("");
@@ -232,14 +228,10 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const checkPhoneExists = useCallback(async () => {
     if (!/^\d{10}$/.test(form.phone) || `+91 ${form.phone}` === existingData?.phone) return;
     try {
-        const response = await fetch('https://us-central1-streamcart-login.cloudfunctions.net/checkPhoneExists', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone: `+91 ${form.phone}` }),
-        });
-        if (!response.ok) throw new Error('Network response was not ok.');
-        const result = await response.json();
-        if (result.exists) {
+        const functions = getFunctions(getFirestoreDb().app);
+        const checkPhone = httpsCallable(functions, 'checkPhoneExists');
+        const result: any = await checkPhone({ phone: `+91 ${form.phone}` });
+        if (result.data.exists) {
             setPhoneError("This phone number is already registered. Please use a different one.");
         } else {
             setPhoneError("");
