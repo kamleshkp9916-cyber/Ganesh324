@@ -260,6 +260,10 @@ exports.generatePublicId = onDocumentWritten("users/{userId}", async (event) => 
 
 exports.checkEmailExists = onRequest({ cors: true }, (req, res) => {
     cors(req, res, async () => {
+        if (req.method === 'OPTIONS') {
+            res.status(204).send('');
+            return;
+        }
         if (req.method !== 'POST') {
             return res.status(405).json({ error: 'Use POST' });
         }
@@ -275,6 +279,10 @@ exports.checkEmailExists = onRequest({ cors: true }, (req, res) => {
 
 exports.checkPhoneExists = onRequest({ cors: true }, (req, res) => {
     cors(req, res, async () => {
+        if (req.method === 'OPTIONS') {
+            res.status(204).send('');
+            return;
+        }
         if (req.method !== 'POST') {
             return res.status(405).json({ error: 'Use POST' });
         }
