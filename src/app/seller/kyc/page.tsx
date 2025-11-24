@@ -804,13 +804,12 @@ export default function KYCPage() {
     
     useEffect(() => {
         setIsClient(true);
-        // Sign in anonymously if no user is present
-        if (auth && !user && !auth.currentUser) {
+        if (isClient && authReady && !user) {
             signInAnonymously(auth).catch((error) => {
                 console.error("Anonymous sign-in failed:", error);
             });
         }
-    }, [auth, user]);
+    }, [isClient, authReady, user, auth]);
     
     const initialProgress = useMemo(() => {
         return Math.round(((0 + 1) / (steps.length)) * 100);
@@ -828,7 +827,7 @@ export default function KYCPage() {
         router.refresh(); // This will re-trigger the check in useEffect
     };
 
-    if (!isClient || !authReady) {
+    if (!isClient || !authReady || (authReady && !user)) {
         return (
             <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
                 <LoadingSpinner />
@@ -945,5 +944,3 @@ export default function KYCPage() {
         </div>
     );
 }
-
-    

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, sendPasswordResetEmail, User, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, getAdditionalUserInfo, updateProfile, setPersistence, browserSessionPersistence, Auth } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, sendPasswordResetEmail, User, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, getAdditionalUserInfo, updateProfile, setPersistence, browserSessionPersistence, Auth, linkWithCredential, EmailAuthProvider } from "firebase/auth";
 import { FirebaseApp } from "firebase/app";
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { createUserData, updateUserData, UserData } from "./follow-data";
@@ -21,8 +21,6 @@ async function triggerUpdateLastLogin(auth: Auth) {
     }
 }
 
-// This is now a pure factory function that takes all dependencies as arguments.
-// It does NOT call any hooks itself.
 export function getAuthActions(
     auth: Auth, 
     firebaseApp: FirebaseApp,
@@ -204,43 +202,47 @@ export function getAuthActions(
     };
     
     const handleSellerSignUp = async (values: any) => {
-        let user: User | null = auth.currentUser;
-        
-        try {
-            if (!user) {
-                const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-                user = userCredential.user;
-                await sendEmailVerification(user);
-            }
+        const currentUser = auth.currentUser;
+        if (!currentUser || !currentUser.isAnonymous) {
+            toast({ variant: 'destructive', title: "Authentication Error", description: "No valid anonymous session found. Please refresh." });
+            throw new Error("User is not anonymous or not logged in.");
+        }
 
-            if (!user) throw new Error("User authentication failed.");
+        try {
+            const credential = EmailAuthProvider.credential(values.email, values.password);
+            const userCredential = await linkWithCredential(currentUser, credential);
+            const user = userCredential.user;
             
             const displayName = values.displayName;
             await updateProfile(user, { displayName: displayName });
-
+            
             const sellerData: Partial<UserData> = {
                 ...values,
                 role: 'seller',
+                email: user.email, // Ensure email is updated from the new credential
             };
         
             delete (sellerData as any).password;
             delete (sellerData as any).confirmPassword;
             
+            // This will now update the existing anonymous user's document with the full data
             await createUserData(user, 'seller', sellerData);
+            
+            await sendEmailVerification(user);
             
             toast({
                 title: "Registration Complete!",
-                description: "Welcome! You can now access your seller dashboard.",
+                description: "Your seller account has been created. A verification email has been sent.",
             });
-
-            router.push('/seller/dashboard');
 
         } catch (error: any) {
             let errorMessage = "An unknown error occurred.";
              if (error.code === 'auth/email-already-in-use') {
                  errorMessage = "This email address is already registered. Please login as a customer and upgrade to a seller account, or use a different email.";
+            } else if (error.code === 'auth/credential-already-in-use') {
+                 errorMessage = "This credential is already associated with another account.";
             } else {
-                 errorMessage = "Failed to create account. Please try again.";
+                 errorMessage = error.message || "Failed to create account. Please try again.";
             }
             toast({
                 title: "Sign Up Failed",
@@ -328,5 +330,3 @@ export function getAuthActions(
         updateUserProfile 
     };
 }
-
-    

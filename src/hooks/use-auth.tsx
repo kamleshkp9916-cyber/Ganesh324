@@ -15,7 +15,7 @@ interface AuthContextType {
   userData: UserData | null;
   loading: boolean;
   authReady: boolean;
-  actions: ReturnType<typeof getAuthActions> | null;
+  actions: ReturnType<typeof getAuthActions>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,17 +27,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [authReady, setAuthReady] = useState(false);
   
-  // Hooks are now at the top level of the component
   const router = useRouter();
   const { toast } = useToast();
 
-  // Initialize auth actions, ensuring context is available
   const actions = useMemo(() => {
-    if (firebaseContext?.auth && firebaseContext?.firebaseApp) {
-      // Pass the hook results as arguments to the factory function
+    if (firebaseContext?.auth && firebaseContext?.firebaseApp && router && toast) {
       return getAuthActions(firebaseContext.auth, firebaseContext.firebaseApp, router, toast);
     }
-    return null;
+    // Return a dummy object if context is not ready, to prevent errors on initial render
+    return getAuthActions({} as any, {} as any, {} as any, () => {});
   }, [firebaseContext, router, toast]);
 
   useEffect(() => {
@@ -57,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const unsubscribeFirestore = onSnapshot(userDocRef, async (doc) => {
           if (doc.exists()) {
             setUserData(doc.data() as UserData);
-          } else {
+          } else if (!firebaseUser.isAnonymous) { // Don't create data for anon users if it doesn't exist
             let data = await getUserData(firebaseUser.uid);
             if (!data) {
                 await createUserData(firebaseUser, 'customer');
@@ -107,18 +105,10 @@ export const useAuth = () => {
   return context;
 };
 
-// A new hook specifically for getting the actions
 export const useAuthActions = () => {
     const context = useContext(AuthContext);
     if (!context) {
         throw new Error('useAuthActions must be used within an AuthProvider');
     }
-    if (!context.actions) {
-        // This can happen during initial render before context is ready
-        // You might want to handle this gracefully in components, e.g. by disabling buttons.
-        return getAuthActions({} as any, {} as any, {} as any, () => {}); // Return a dummy object
-    }
     return context.actions;
 }
-
-    
