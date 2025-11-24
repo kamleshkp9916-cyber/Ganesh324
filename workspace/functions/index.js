@@ -102,7 +102,7 @@ async function handleStatus(req, res) {
 
 // --- Main onRequest Function for KYC Flow ---
 exports.verifyFlow = onRequest(
-  { secrets: ["ODIDIT_API_KEY"], cors: true },
+  { secrets: ["ODIDIT_API_KEY"] },
   async (req, res) => {
     cors(req, res, async () => {
         const action = req.body.action || req.query.action;
@@ -258,7 +258,7 @@ exports.generatePublicId = onDocumentWritten("users/{userId}", async (event) => 
 
 // --- onRequest Functions for Validation ---
 
-exports.checkEmailExists = onRequest({ cors: true }, (req, res) => {
+exports.checkEmailExists = onRequest((req, res) => {
     cors(req, res, async () => {
         if (req.method === 'OPTIONS') {
             res.status(204).send('');
@@ -277,7 +277,7 @@ exports.checkEmailExists = onRequest({ cors: true }, (req, res) => {
     });
 });
 
-exports.checkPhoneExists = onRequest({ cors: true }, (req, res) => {
+exports.checkPhoneExists = onRequest((req, res) => {
     cors(req, res, async () => {
         if (req.method === 'OPTIONS') {
             res.status(204).send('');
