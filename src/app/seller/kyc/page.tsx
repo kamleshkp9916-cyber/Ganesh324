@@ -28,8 +28,6 @@ import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAuthActions } from "@/lib/auth";
 import { useLocalStorage } from "@/hooks/use-local-storage";
-import { getFunctions, httpsCallable } from "firebase/functions";
-import { getFirestoreDb } from "@/lib/firebase-db";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const SELLER_KYC_DRAFT_KEY = 'sellerKycDraft';
@@ -110,13 +108,13 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const [form, setForm] = useLocalStorage<any>(SELLER_KYC_DRAFT_KEY, initialFormState);
   const [isFormDirty, setIsFormDirty] = useState(false);
   
-    const [verif, setVerif] = useState<{ state: "IDLE" | "PENDING" | "VERIFIED" | "FAILED", message: string }>({ state: existingData?.isNipherVerified ? 'VERIFIED' : "IDLE", message: existingData?.isNipherVerified ? 'Verification previously completed.' : '' });
+  const [verif, setVerif] = useState<{ state: "IDLE" | "PENDING" | "VERIFIED" | "FAILED", message: string }>({ state: (existingData as any)?.isNipherVerified ? 'VERIFIED' : "IDLE", message: (existingData as any)?.isNipherVerified ? 'Verification previously completed.' : '' });
   const [isVerifying, setIsVerifying] = useState({ email: false, phone: false, aadhaar: false, face: false });
-  const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(form.photoUrl || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-    const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
+  const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
   const selfieInputRef = useRef<HTMLInputElement>(null);
 
   const [emailError, setEmailError] = useState('');
@@ -265,15 +263,17 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     
     setIsVerifying(prev => ({...prev, [type]: true}));
     try {
-        const functions = getFunctions(getFirestoreDb().app);
-        const verifyCode = httpsCallable(functions, 'verifyCode');
-        const result: any = await verifyCode({ target: type === 'email' ? form.email : `+91${form.phone}`, otp });
-
-        if (result.data.success) {
+        const response = await fetch('/api/verify-otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ target: type === 'email' ? form.email : `+91${form.phone}`, otp }),
+        });
+        const result = await response.json();
+        if (result.ok) {
             setField(`${type}Verified`, true);
             toast({ title: `${type.charAt(0).toUpperCase() + type.slice(1)} Verified!` });
         } else {
-            throw new Error(result.data.error?.message || 'Invalid OTP');
+            throw new Error(result.error || 'Invalid OTP');
         }
     } catch (error: any) {
         toast({ variant: "destructive", title: "Verification Failed", description: error.message });
@@ -313,26 +313,43 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const canSubmit = form.termsAccepted && verif.state === "VERIFIED";
 
   const handleGenerateVerification = async () => {
+    if (!user) {
+        toast({variant: 'destructive', title: 'Authentication Error', description: 'You must be logged in.'});
+        return;
+    }
     setVerif({ state: "PENDING", message: "Contacting verification service..." });
     try {
-        const functions = getFunctions(getFirestoreDb().app);
-        const createSession = httpsCallable(functions, 'createOdiditSession');
-        const response: any = await createSession({ userId: user?.uid });
-        const { verificationLink, sessionId } = response.data;
+        const functionUrl = `https://us-central1-streamcart-login.cloudfunctions.net/verifyFlow/startVerification`;
+        const response = await fetch(functionUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.uid }),
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.json();
+            throw new Error(errorBody.error || 'Failed to start verification.');
+        }
+
+        const { sessionId, qrDataUrl } = await response.json();
         
-        setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(verificationLink)}`);
+        setQrDataUrl(qrDataUrl);
         setVerif({ state: "PENDING", message: "Scan the QR code with your phone to complete verification." });
         
         const pollInterval = setInterval(async () => {
             try {
-                 const checkSession = httpsCallable(functions, 'checkOdiditSession');
-                 const result: any = await checkSession({ sessionId });
-
-                if (result.data.status === 'VERIFIED') {
+                const statusUrl = `https://us-central1-streamcart-login.cloudfunctions.net/verifyFlow/status?sessionId=${sessionId}`;
+                const statusResponse = await fetch(statusUrl);
+                const result = await statusResponse.json();
+                
+                if (result.status === 'VERIFIED') {
                     clearInterval(pollInterval);
                     setVerif({ state: "VERIFIED", message: "Verification successful! You can now proceed." });
                     toast({ title: "Verification Successful!", description: "Proceeding to the next step." });
                     setTimeout(() => next(), 1500);
+                } else if (result.status === 'FAILED' || result.status === 'ERROR') {
+                     clearInterval(pollInterval);
+                     setVerif({ state: "FAILED", message: "Verification failed. Please try again." });
                 }
             } catch (error) {
                 console.error("Polling error:", error);
@@ -341,9 +358,9 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
             }
         }, 3000);
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error creating 0DIDit session:", error);
-        setVerif({ state: "FAILED", message: "Could not start verification. Please try again." });
+        setVerif({ state: "FAILED", message: error.message || "Could not start verification. Please try again." });
     }
   };
   
@@ -637,10 +654,10 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
 
                     {verif.state === 'PENDING' && (
                         <div className="flex flex-col items-center gap-4">
-                            <h3 className="font-semibold">{qrCodeUrl ? "Scan to Verify" : "Generating..."}</h3>
+                            <h3 className="font-semibold">{qrDataUrl ? "Scan to Verify" : "Generating..."}</h3>
                             <p className="text-sm text-muted-foreground">{verif.message}</p>
-                            {qrCodeUrl ? (
-                                <Image src={qrCodeUrl} alt="0DIDit Verification QR Code" width={250} height={250} className="rounded-lg border p-2" />
+                            {qrDataUrl ? (
+                                <Image src={qrDataUrl} alt="0DIDit Verification QR Code" width={250} height={250} className="rounded-lg border p-2" />
                             ) : (
                                 <Skeleton className="w-[250px] h-[250px]" />
                             )}
@@ -922,5 +939,3 @@ export default function KYCPage() {
         </div>
     );
 }
-
-    

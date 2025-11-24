@@ -1,0 +1,244 @@
+
+> nextn@0.1.0 dev
+> tsx watch node_modules/.bin/next dev
+
+  ▲ Next.js 14.2.5
+  - Local:        http://localhost:3000
+  - Environments: .env.local, .env
+
+ ✓ Starting...
+ ✓ Ready in 3.6s
+ ○ Compiling /seller-kyc ...
+ ⨯ ./src/components/OdiditVerifier.jsx
+Error: 
+  [31mx[0m the name `httpsCallable` is defined multiple times
+   ,-[[36;1;4m/home/user/studio/src/components/OdiditVerifier.jsx[0m:1:1]
+ [2m1[0m | // OdiditVerifier.jsx
+ [2m2[0m | import React, { useState, useEffect, useRef } from "react";
+ [2m3[0m | import { httpsCallable } from "firebase/functions";
+   : [31;1m         ^^^^^^|^^^^^^[0m
+   :                [31;1m`-- [31;1mprevious definition of `httpsCallable` here[0m[0m
+ [2m4[0m | import { httpsCallable } from 'firebase/functions';
+   : [33;1m         ^^^^^^|^^^^^^[0m
+   :                [33;1m`-- [33;1m`httpsCallable` redefined here[0m[0m
+ [2m5[0m | import { getFunctionsClient } from '@/firebase';
+ [2m6[0m | const functions = getFunctionsClient();
+   `----
+
+  [31mx[0m You're importing a component that needs useState. It only works in a Client Component but none of its parents are marked with "use client", so they're Server Components by default.
+  [31m|[0m Learn more: https://nextjs.org/docs/getting-started/react-essentials
+  [31m|[0m 
+  [31m|[0m 
+   ,-[[36;1;4m/home/user/studio/src/components/OdiditVerifier.jsx[0m:1:1]
+ [2m1[0m | // OdiditVerifier.jsx
+ [2m2[0m | import React, { useState, useEffect, useRef } from "react";
+   : [31;1m                ^^^^^^^^[0m
+ [2m3[0m | import { httpsCallable } from "firebase/functions";
+ [2m4[0m | import { httpsCallable } from 'firebase/functions';
+ [2m5[0m | import { getFunctionsClient } from '@/firebase';
+   `----
+
+  [31mx[0m You're importing a component that needs useEffect. It only works in a Client Component but none of its parents are marked with "use client", so they're Server Components by default.
+  [31m|[0m Learn more: https://nextjs.org/docs/getting-started/react-essentials
+  [31m|[0m 
+  [31m|[0m 
+   ,-[[36;1;4m/home/user/studio/src/components/OdiditVerifier.jsx[0m:1:1]
+ [2m1[0m | // OdiditVerifier.jsx
+ [2m2[0m | import React, { useState, useEffect, useRef } from "react";
+   : [31;1m                          ^^^^^^^^^[0m
+ [2m3[0m | import { httpsCallable } from "firebase/functions";
+ [2m4[0m | import { httpsCallable } from 'firebase/functions';
+ [2m5[0m | import { getFunctionsClient } from '@/firebase';
+   `----
+
+  [31mx[0m You're importing a component that needs useRef. It only works in a Client Component but none of its parents are marked with "use client", so they're Server Components by default.
+  [31m|[0m Learn more: https://nextjs.org/docs/getting-started/react-essentials
+  [31m|[0m 
+  [31m|[0m 
+   ,-[[36;1;4m/home/user/studio/src/components/OdiditVerifier.jsx[0m:1:1]
+ [2m1[0m | // OdiditVerifier.jsx
+ [2m2[0m | import React, { useState, useEffect, useRef } from "react";
+   : [31;1m                                     ^^^^^^[0m
+ [2m3[0m | import { httpsCallable } from "firebase/functions";
+ [2m4[0m | import { httpsCallable } from 'firebase/functions';
+ [2m5[0m | import { getFunctionsClient } from '@/firebase';
+   `----
+
+Import trace for requested module:
+./src/components/OdiditVerifier.jsx
+./src/app/seller-kyc/page.jsx
+ ⨯ ./src/components/OdiditVerifier.jsx
+Error: 
+  [31mx[0m the name `httpsCallable` is defined multiple times
+   ,-[[36;1;4m/home/user/studio/src/components/OdiditVerifier.jsx[0m:1:1]
+ [2m1[0m | // OdiditVerifier.jsx
+ [2m2[0m | import React, { useState, useEffect, useRef } from "react";
+ [2m3[0m | import { httpsCallable } from "firebase/functions";
+   : [31;1m         ^^^^^^|^^^^^^[0m
+   :                [31;1m`-- [31;1mprevious definition of `httpsCallable` here[0m[0m
+ [2m4[0m | import { httpsCallable } from 'firebase/functions';
+   : [33;1m         ^^^^^^|^^^^^^[0m
+   :                [33;1m`-- [33;1m`httpsCallable` redefined here[0m[0m
+ [2m5[0m | import { getFunctionsClient } from '@/firebase';
+ [2m6[0m | const functions = getFunctionsClient();
+   `----
+
+  [31mx[0m You're importing a component that needs useState. It only works in a Client Component but none of its parents are marked with "use client", so they're Server Components by default.
+  [31m|[0m Learn more: https://nextjs.org/docs/getting-started/react-essentials
+  [31m|[0m 
+  [31m|[0m 
+   ,-[[36;1;4m/home/user/studio/src/components/OdiditVerifier.jsx[0m:1:1]
+ [2m1[0m | // OdiditVerifier.jsx
+ [2m2[0m | import React, { useState, useEffect, useRef } from "react";
+   : [31;1m                ^^^^^^^^[0m
+ [2m3[0m | import { httpsCallable } from "firebase/functions";
+ [2m4[0m | import { httpsCallable } from 'firebase/functions';
+ [2m5[0m | import { getFunctionsClient } from '@/firebase';
+   `----
+
+  [31mx[0m You're importing a component that needs useEffect. It only works in a Client Component but none of its parents are marked with "use client", so they're Server Components by default.
+  [31m|[0m Learn more: https://nextjs.org/docs/getting-started/react-essentials
+  [31m|[0m 
+  [31m|[0m 
+   ,-[[36;1;4m/home/user/studio/src/components/OdiditVerifier.jsx[0m:1:1]
+ [2m1[0m | // OdiditVerifier.jsx
+ [2m2[0m | import React, { useState, useEffect, useRef } from "react";
+   : [31;1m                          ^^^^^^^^^[0m
+ [2m3[0m | import { httpsCallable } from "firebase/functions";
+ [2m4[0m | import { httpsCallable } from 'firebase/functions';
+ [2m5[0m | import { getFunctionsClient } from '@/firebase';
+   `----
+
+  [31mx[0m You're importing a component that needs useRef. It only works in a Client Component but none of its parents are marked with "use client", so they're Server Components by default.
+  [31m|[0m Learn more: https://nextjs.org/docs/getting-started/react-essentials
+  [31m|[0m 
+  [31m|[0m 
+   ,-[[36;1;4m/home/user/studio/src/components/OdiditVerifier.jsx[0m:1:1]
+ [2m1[0m | // OdiditVerifier.jsx
+ [2m2[0m | import React, { useState, useEffect, useRef } from "react";
+   : [31;1m                                     ^^^^^^[0m
+ [2m3[0m | import { httpsCallable } from "firebase/functions";
+ [2m4[0m | import { httpsCallable } from 'firebase/functions';
+ [2m5[0m | import { getFunctionsClient } from '@/firebase';
+   `----
+
+Import trace for requested module:
+./src/components/OdiditVerifier.jsx
+./src/app/seller-kyc/page.jsx
+ ⨯ ./src/components/OdiditVerifier.jsx
+Error: 
+  [31mx[0m the name `httpsCallable` is defined multiple times
+   ,-[[36;1;4m/home/user/studio/src/components/OdiditVerifier.jsx[0m:1:1]
+ [2m1[0m | // OdiditVerifier.jsx
+ [2m2[0m | import React, { useState, useEffect, useRef } from "react";
+ [2m3[0m | import { httpsCallable } from "firebase/functions";
+   : [31;1m         ^^^^^^|^^^^^^[0m
+   :                [31;1m`-- [31;1mprevious definition of `httpsCallable` here[0m[0m
+ [2m4[0m | import { httpsCallable } from 'firebase/functions';
+   : [33;1m         ^^^^^^|^^^^^^[0m
+   :                [33;1m`-- [33;1m`httpsCallable` redefined here[0m[0m
+ [2m5[0m | import { getFunctionsClient } from '@/firebase';
+ [2m6[0m | const functions = getFunctionsClient();
+   `----
+
+  [31mx[0m You're importing a component that needs useState. It only works in a Client Component but none of its parents are marked with "use client", so they're Server Components by default.
+  [31m|[0m Learn more: https://nextjs.org/docs/getting-started/react-essentials
+  [31m|[0m 
+  [31m|[0m 
+   ,-[[36;1;4m/home/user/studio/src/components/OdiditVerifier.jsx[0m:1:1]
+ [2m1[0m | // OdiditVerifier.jsx
+ [2m2[0m | import React, { useState, useEffect, useRef } from "react";
+   : [31;1m                ^^^^^^^^[0m
+ [2m3[0m | import { httpsCallable } from "firebase/functions";
+ [2m4[0m | import { httpsCallable } from 'firebase/functions';
+ [2m5[0m | import { getFunctionsClient } from '@/firebase';
+   `----
+
+  [31mx[0m You're importing a component that needs useEffect. It only works in a Client Component but none of its parents are marked with "use client", so they're Server Components by default.
+  [31m|[0m Learn more: https://nextjs.org/docs/getting-started/react-essentials
+  [31m|[0m 
+  [31m|[0m 
+   ,-[[36;1;4m/home/user/studio/src/components/OdiditVerifier.jsx[0m:1:1]
+ [2m1[0m | // OdiditVerifier.jsx
+ [2m2[0m | import React, { useState, useEffect, useRef } from "react";
+   : [31;1m                          ^^^^^^^^^[0m
+ [2m3[0m | import { httpsCallable } from "firebase/functions";
+ [2m4[0m | import { httpsCallable } from 'firebase/functions';
+ [2m5[0m | import { getFunctionsClient } from '@/firebase';
+   `----
+
+  [31mx[0m You're importing a component that needs useRef. It only works in a Client Component but none of its parents are marked with "use client", so they're Server Components by default.
+  [31m|[0m Learn more: https://nextjs.org/docs/getting-started/react-essentials
+  [31m|[0m 
+  [31m|[0m 
+   ,-[[36;1;4m/home/user/studio/src/components/OdiditVerifier.jsx[0m:1:1]
+ [2m1[0m | // OdiditVerifier.jsx
+ [2m2[0m | import React, { useState, useEffect, useRef } from "react";
+   : [31;1m                                     ^^^^^^[0m
+ [2m3[0m | import { httpsCallable } from "firebase/functions";
+ [2m4[0m | import { httpsCallable } from 'firebase/functions';
+ [2m5[0m | import { getFunctionsClient } from '@/firebase';
+   `----
+
+Import trace for requested module:
+./src/components/OdiditVerifier.jsx
+./src/app/seller-kyc/page.jsx
+ ⨯ ./src/components/OdiditVerifier.jsx
+Error: 
+  [31mx[0m the name `httpsCallable` is defined multiple times
+   ,-[[36;1;4m/home/user/studio/src/components/OdiditVerifier.jsx[0m:1:1]
+ [2m1[0m | // OdiditVerifier.jsx
+ [2m2[0m | import React, { useState, useEffect, useRef } from "react";
+ [2m3[0m | import { httpsCallable } from "firebase/functions";
+   : [31;1m         ^^^^^^|^^^^^^[0m
+   :                [31;1m`-- [31;1mprevious definition of `httpsCallable` here[0m[0m
+ [2m4[0m | import { httpsCallable } from 'firebase/functions';
+   : [33;1m         ^^^^^^|^^^^^^[0m
+   :                [33;1m`-- [33;1m`httpsCallable` redefined here[0m[0m
+ [2m5[0m | import { getFunctionsClient } from '@/firebase';
+ [2m6[0m | const functions = getFunctionsClient();
+   `----
+
+  [31mx[0m You're importing a component that needs useState. It only works in a Client Component but none of its parents are marked with "use client", so they're Server Components by default.
+  [31m|[0m Learn more: https://nextjs.org/docs/getting-started/react-essentials
+  [31m|[0m 
+  [31m|[0m 
+   ,-[[36;1;4m/home/user/studio/src/components/OdiditVerifier.jsx[0m:1:1]
+ [2m1[0m | // OdiditVerifier.jsx
+ [2m2[0m | import React, { useState, useEffect, useRef } from "react";
+   : [31;1m                ^^^^^^^^[0m
+ [2m3[0m | import { httpsCallable } from "firebase/functions";
+ [2m4[0m | import { httpsCallable } from 'firebase/functions';
+ [2m5[0m | import { getFunctionsClient } from '@/firebase';
+   `----
+
+  [31mx[0m You're importing a component that needs useEffect. It only works in a Client Component but none of its parents are marked with "use client", so they're Server Components by default.
+  [31m|[0m Learn more: https://nextjs.org/docs/getting-started/react-essentials
+  [31m|[0m 
+  [31m|[0m 
+   ,-[[36;1;4m/home/user/studio/src/components/OdiditVerifier.jsx[0m:1:1]
+ [2m1[0m | // OdiditVerifier.jsx
+ [2m2[0m | import React, { useState, useEffect, useRef } from "react";
+   : [31;1m                          ^^^^^^^^^[0m
+ [2m3[0m | import { httpsCallable } from "firebase/functions";
+ [2m4[0m | import { httpsCallable } from 'firebase/functions';
+ [2m5[0m | import { getFunctionsClient } from '@/firebase';
+   `----
+
+  [31mx[0m You're importing a component that needs useRef. It only works in a Client Component but none of its parents are marked with "use client", so they're Server Components by default.
+  [31m|[0m Learn more: https://nextjs.org/docs/getting-started/react-essentials
+  [31m|[0m 
+  [31m|[0m 
+   ,-[[36;1;4m/home/user/studio/src/components/OdiditVerifier.jsx[0m:1:1]
+ [2m1[0m | // OdiditVerifier.jsx
+ [2m2[0m | import React, { useState, useEffect, useRef } from "react";
+   : [31;1m                                     ^^^^^^[0m
+ [2m3[0m | import { httpsCallable } from "firebase/functions";
+ [2m4[0m | import { httpsCallable } from 'firebase/functions';
+ [2m5[0m | import { getFunctionsClient } from '@/firebase';
+   `----
+
+Import trace for requested module:
+./src/components/OdiditVerifier.jsx
+./src/app/seller-kyc/page.jsx
+ GET /seller-kyc 500 in 29780ms
