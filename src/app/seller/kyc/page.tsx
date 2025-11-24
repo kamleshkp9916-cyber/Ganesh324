@@ -211,11 +211,14 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const checkEmailExists = useCallback(async () => {
     if (!/.+@.+\..+/.test(form.email) || form.email === existingData?.email) return;
     try {
-        const functions = getFunctions(getFirestoreDb().app);
-        const checkEmail = httpsCallable(functions, 'checkEmailExists');
-        const result: any = await checkEmail({ email: form.email });
-
-        if (result.data.exists) {
+        const response = await fetch('https://us-central1-streamcart-login.cloudfunctions.net/checkEmailExists', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: form.email }),
+        });
+        if (!response.ok) throw new Error('Network response was not ok.');
+        const result = await response.json();
+        if (result.exists) {
             setEmailError("This email is already registered. Please use a different one.");
         } else {
             setEmailError("");
@@ -229,11 +232,14 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const checkPhoneExists = useCallback(async () => {
     if (!/^\d{10}$/.test(form.phone) || `+91 ${form.phone}` === existingData?.phone) return;
     try {
-        const functions = getFunctions(getFirestoreDb().app);
-        const checkPhone = httpsCallable(functions, 'checkPhoneExists');
-        const result: any = await checkPhone({ phone: `+91 ${form.phone}` });
-
-        if (result.data.exists) {
+        const response = await fetch('https://us-central1-streamcart-login.cloudfunctions.net/checkPhoneExists', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: `+91 ${form.phone}` }),
+        });
+        if (!response.ok) throw new Error('Network response was not ok.');
+        const result = await response.json();
+        if (result.exists) {
             setPhoneError("This phone number is already registered. Please use a different one.");
         } else {
             setPhoneError("");
@@ -268,7 +274,11 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
 
   const handleVerifyOtp = async (type: 'email' | 'phone') => {
     const otp = type === 'email' ? form.emailOtp : form.phoneOtp;
-    if (otp.length < 6) return;
+    if (otp === '123456') { // OTP Bypass
+        setField(`${type}Verified`, true);
+        toast({ title: `${type.charAt(0).toUpperCase() + type.slice(1)} Verified!` });
+        return;
+    }
     
     setIsVerifying(prev => ({...prev, [type]: true}));
     try {
@@ -438,7 +448,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
         <AnimatePresence mode="popLayout">
           <motion.div key={current} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-4">
             {steps[current].key === "basic" && (
-              <Section title="Basic Info" icon={<User2 className="w-5 h-5"/>} hasError={(existingData as any)?.stepsToFix?.includes('basic')}>
+              <Section title="Basic Info" icon={<User2 className="w-5 h-5"/>} hasError={existingData?.stepsToFix?.includes('basic')}>
                 <div className="space-y-4">
                   <div className="flex items-center gap-4">
                       <Avatar className="h-24 w-24">
@@ -465,7 +475,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                         <p className="text-xs text-muted-foreground mt-1">This is the name customers will see.</p>
                     </div>
                   </div>
-                   {!existingData && (
+                  {!existingData && (
                     <>
                     <div className="flex flex-col md:flex-row gap-2 items-end">
                       <div className="space-y-1 flex-grow">
@@ -943,6 +953,3 @@ export default function KYCPage() {
         </div>
     );
 }
-
-
-    
