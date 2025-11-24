@@ -1,3 +1,4 @@
+
 'use strict';
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
@@ -24,6 +25,42 @@ function makeId(len = 12) {
   for (let i = 0; i < len; i++) s += chars[Math.floor(Math.random() * chars.length)];
   return s;
 }
+
+exports.checkEmailExists = onRequest({ cors: true }, async (req, res) => {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method Not Allowed' });
+    }
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ error: 'Email is required' });
+        }
+        const usersRef = db.collection('users');
+        const querySnapshot = await usersRef.where('email', '==', email).limit(1).get();
+        return res.status(200).json({ exists: !querySnapshot.empty });
+    } catch (error) {
+        console.error("Error in checkEmailExists:", error);
+        return res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+exports.checkPhoneExists = onRequest({ cors: true }, async (req, res) => {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method Not Allowed' });
+    }
+    try {
+        const { phone } = req.body;
+        if (!phone) {
+            return res.status(400).json({ error: 'Phone number is required' });
+        }
+        const usersRef = db.collection('users');
+        const querySnapshot = await usersRef.where('phone', '==', phone).limit(1).get();
+        return res.status(200).json({ exists: !querySnapshot.empty });
+    } catch (error) {
+        console.error("Error in checkPhoneExists:", error);
+        return res.status(500).json({ error: "Internal Server Error" });
+    }
+});
 
 
 async function handleStartVerification(req, res) {
@@ -89,26 +126,6 @@ exports.verifyFlow = onRequest(
 
 
 // --- onCall Functions ---
-
-exports.checkEmailExists = onCall(async (request) => {
-    const { email } = request.data;
-    if (!email) {
-        throw new HttpsError('invalid-argument', 'The function must be called with an "email" argument.');
-    }
-    const usersRef = db.collection('users');
-    const querySnapshot = await usersRef.where('email', '==', email).limit(1).get();
-    return { exists: !querySnapshot.empty };
-});
-
-exports.checkPhoneExists = onCall(async (request) => {
-    const { phone } = request.data;
-    if (!phone) {
-        throw new HttpsError('invalid-argument', 'The function must be called with a "phone" argument.');
-    }
-    const usersRef = db.collection('users');
-    const querySnapshot = await usersRef.where('phone', '==', phone).limit(1).get();
-    return { exists: !querySnapshot.empty };
-});
 
 exports.createOdiditSession = onCall({ secrets: ["ODIDIT_API_KEY"] }, async (request) => {
     if (!process.env.ODIDIT_API_KEY) {
@@ -270,3 +287,5 @@ exports.notifyDeliveryPartner = onRequest({ cors: true }, async (req, res) => {
 
     res.status(200).json({ success: true, message: `Delivery partner notified for order ${orderId}` });
 });
+
+    
