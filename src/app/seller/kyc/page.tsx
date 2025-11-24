@@ -26,7 +26,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useAuthActions } from "@/lib/auth";
+import { useAuthActions } from "@/hooks/use-auth";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { getFirestoreDb } from "@/lib/firebase-db";
@@ -498,9 +498,6 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                             <InputOTP maxLength={6} value={form.emailOtp} onChange={(val) => setField("emailOtp", val)}>
                                 <InputOTPGroup>
                                     <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
-                                </InputOTPGroup>
-                                <InputOTPSeparator />
-                                <InputOTPGroup>
                                     <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
                                 </InputOTPGroup>
                             </InputOTP>
@@ -526,9 +523,6 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                             <InputOTP maxLength={6} value={form.phoneOtp} onChange={(val) => setField("phoneOtp", val)}>
                                 <InputOTPGroup>
                                     <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
-                                </InputOTPGroup>
-                                <InputOTPSeparator />
-                                <InputOTPGroup>
                                     <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
                                 </InputOTPGroup>
                             </InputOTP>
