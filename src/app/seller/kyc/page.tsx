@@ -15,7 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Check, AlertTriangle, Upload, ChevronLeft, ChevronRight, ShieldCheck, Building2, User2, MapPin, Banknote, FileSignature, ClipboardList, Eye, UserCheck, ShieldAlert, Gavel, Loader2, Send, Camera, QrCode, CheckCircle2, Save, RotateCcw } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth, useAuthActions } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
@@ -26,8 +26,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useAuthActions } from "@/lib/auth";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+import { getFunctions, httpsCallable } from "firebase/functions";
+import { getFirestoreDb } from "@/lib/firebase-db";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const SELLER_KYC_DRAFT_KEY = 'sellerKycDraft';
@@ -108,13 +109,13 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const [form, setForm] = useLocalStorage<any>(SELLER_KYC_DRAFT_KEY, initialFormState);
   const [isFormDirty, setIsFormDirty] = useState(false);
   
-  const [verif, setVerif] = useState<{ state: "IDLE" | "PENDING" | "VERIFIED" | "FAILED", message: string }>({ state: (existingData as any)?.isNipherVerified ? 'VERIFIED' : "IDLE", message: (existingData as any)?.isNipherVerified ? 'Verification previously completed.' : '' });
+    const [verif, setVerif] = useState<{ state: "IDLE" | "PENDING" | "VERIFIED" | "FAILED", message: string }>({ state: existingData?.isNipherVerified ? 'VERIFIED' : "IDLE", message: existingData?.isNipherVerified ? 'Verification previously completed.' : '' });
   const [isVerifying, setIsVerifying] = useState({ email: false, phone: false, aadhaar: false, face: false });
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(form.photoUrl || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
+    const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
   const selfieInputRef = useRef<HTMLInputElement>(null);
 
   const [emailError, setEmailError] = useState('');
@@ -263,17 +264,15 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     
     setIsVerifying(prev => ({...prev, [type]: true}));
     try {
-        const response = await fetch('/api/verify-otp', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ target: type === 'email' ? form.email : `+91${form.phone}`, otp }),
-        });
-        const result = await response.json();
-        if (result.ok) {
+        const functions = getFunctions(getFirestoreDb().app);
+        const verifyCode = httpsCallable(functions, 'verifyCode');
+        const result: any = await verifyCode({ target: type === 'email' ? form.email : `+91${form.phone}`, otp });
+
+        if (result.data.success) {
             setField(`${type}Verified`, true);
             toast({ title: `${type.charAt(0).toUpperCase() + type.slice(1)} Verified!` });
         } else {
-            throw new Error(result.error || 'Invalid OTP');
+            throw new Error(result.data.error?.message || 'Invalid OTP');
         }
     } catch (error: any) {
         toast({ variant: "destructive", title: "Verification Failed", description: error.message });
@@ -939,3 +938,6 @@ export default function KYCPage() {
         </div>
     );
 }
+
+
+    
