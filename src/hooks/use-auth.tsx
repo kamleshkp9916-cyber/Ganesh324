@@ -4,7 +4,7 @@
 import { useEffect, useState, createContext, useContext, useMemo } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { useFirebase } from '@/firebase'; // Import the main hook
+import { FirebaseContext } from '@/firebase/provider'; // Corrected import
 import { createUserData, getUserData, UserData } from "@/lib/follow-data";
 
 interface AuthContextType {
@@ -17,17 +17,19 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({ user: null, userData: null, loading: true, authReady: false });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { auth, firestore } = useFirebase(); // Get instances from the provider
+  const firebaseContext = useContext(FirebaseContext);
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [authReady, setAuthReady] = useState(false);
 
   useEffect(() => {
-    if (!auth || !firestore) {
+    if (!firebaseContext || !firebaseContext.auth || !firebaseContext.firestore) {
       // Firebase services are not available yet.
       return;
     }
+    
+    const { auth, firestore } = firebaseContext;
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       setLoading(true);
@@ -67,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => unsubscribeAuth();
-  }, [auth, firestore]);
+  }, [firebaseContext]);
 
   const value = useMemo(() => ({ user, userData, loading, authReady }), [user, userData, loading, authReady]);
 
