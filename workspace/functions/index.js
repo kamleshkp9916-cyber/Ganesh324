@@ -5,7 +5,7 @@ const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onRequest } = require('firebase-functions/v2/onRequest');
 const { onDocumentWritten } = require("firebase-functions/v2/firestore");
 const crypto = require('crypto');
-const cors = require('cors')({ origin: true }); // Enable CORS
+const cors = require('cors')({ origin: true });
 const QRCode = require("qrcode");
 const admin = require('firebase-admin');
 
@@ -249,7 +249,7 @@ exports.generatePublicId = onDocumentWritten("users/{userId}", async (event) => 
 
 // --- onRequest Functions for Validation ---
 
-exports.checkEmailExists = onRequest((req, res) => {
+exports.checkEmailExists = onRequest({ cors: true }, (req, res) => {
     cors(req, res, async () => {
         if (req.method !== 'POST') {
             return res.status(405).json({ error: 'Use POST' });
@@ -264,7 +264,7 @@ exports.checkEmailExists = onRequest((req, res) => {
     });
 });
 
-exports.checkPhoneExists = onRequest((req, res) => {
+exports.checkPhoneExists = onRequest({ cors: true }, (req, res) => {
     cors(req, res, async () => {
         if (req.method !== 'POST') {
             return res.status(405).json({ error: 'Use POST' });
@@ -296,3 +296,5 @@ exports.notifyDeliveryPartner = onRequest({ cors: true }, async (req, res) => {
 
     res.status(200).json({ success: true, message: `Delivery partner notified for order ${orderId}` });
 });
+
+    
