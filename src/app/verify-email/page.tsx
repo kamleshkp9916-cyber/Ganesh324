@@ -6,11 +6,12 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { MailCheck, Loader2 } from "lucide-react";
+import { MailCheck, Loader2, ChevronLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { sendEmailVerification, User } from "firebase/auth";
 import { useAuthActions } from "@/hooks/use-auth";
+import Link from "next/link";
 
 export default function VerifyEmailPage() {
     const { user, userData, loading } = useAuth();
@@ -28,7 +29,7 @@ export default function VerifyEmailPage() {
             } else if (user.emailVerified) {
                 // If user is already verified, redirect them based on role
                 if (userData?.role === 'seller') {
-                    router.replace('/seller/verification');
+                    router.replace('/seller/dashboard');
                 } else {
                     router.replace('/live-selling');
                 }
@@ -74,7 +75,7 @@ export default function VerifyEmailPage() {
             // A more robust solution might involve waiting for userData to update.
             setTimeout(() => {
                  if (userData?.role === 'seller') {
-                    router.push('/seller/verification');
+                    router.push('/seller/dashboard');
                 } else {
                     router.push('/live-selling');
                 }
@@ -99,7 +100,13 @@ export default function VerifyEmailPage() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="min-h-screen flex items-center justify-center bg-background p-4 relative">
+             <div className="absolute top-4 left-4">
+                <Button variant="ghost" onClick={signOut}>
+                    <ChevronLeft className="h-4 w-4 mr-2" />
+                    Back to Login
+                </Button>
+            </div>
             <Card className="w-full max-w-md">
                 <CardHeader className="text-center">
                     <div className="mx-auto bg-primary/10 p-3 rounded-full w-fit">
