@@ -30,6 +30,7 @@ import { useLocalStorage } from "@/hooks/use-local-storage";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { getFirestoreDb } from "@/lib/firebase-db";
 import { Skeleton } from "@/components/ui/skeleton";
+import { signInAnonymously } from "firebase/auth";
 
 const SELLER_KYC_DRAFT_KEY = 'sellerKycDraft';
 const SELLER_KYC_STEP_KEY = 'sellerKycStep';
@@ -64,7 +65,7 @@ const steps = [
 ];
 
 function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => void, existingData?: UserData | null }) {
-  const { user } = useAuth();
+  const { user, auth } = useAuth();
   const { toast } = useToast();
   const { handleSellerSignUp } = useAuthActions();
   
@@ -312,8 +313,8 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const canSubmit = form.termsAccepted && verif.state === "VERIFIED";
 
   const handleGenerateVerification = async () => {
-    if (!user) {
-        toast({variant: 'destructive', title: 'Authentication Error', description: 'You must be logged in.'});
+    if (!user || !user.uid) {
+        toast({variant: 'destructive', title: 'Authentication Error', description: 'Could not get a temporary user ID. Please refresh and try again.'});
         return;
     }
     setVerif({ state: "PENDING", message: "Contacting verification service..." });
@@ -797,13 +798,19 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
 }
 
 export default function KYCPage() {
-    const { user, userData, authReady } = useAuth();
+    const { user, userData, auth, authReady } = useAuth();
     const router = useRouter();
     const [isClient, setIsClient] = useState(false);
     
     useEffect(() => {
         setIsClient(true);
-    }, []);
+        // Sign in anonymously if no user is present
+        if (auth && !user && !auth.currentUser) {
+            signInAnonymously(auth).catch((error) => {
+                console.error("Anonymous sign-in failed:", error);
+            });
+        }
+    }, [auth, user]);
     
     const initialProgress = useMemo(() => {
         return Math.round(((0 + 1) / (steps.length)) * 100);
@@ -811,7 +818,7 @@ export default function KYCPage() {
     
     useEffect(() => {
         if (isClient && authReady) {
-            if (user && userData?.role === 'seller' && userData?.verificationStatus === 'verified') {
+            if (user && !user.isAnonymous && userData?.role === 'seller' && userData?.verificationStatus === 'verified') {
                 router.replace('/seller/dashboard');
             }
         }
@@ -938,6 +945,5 @@ export default function KYCPage() {
         </div>
     );
 }
-
 
     
