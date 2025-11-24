@@ -110,13 +110,13 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const [form, setForm] = useLocalStorage<any>(SELLER_KYC_DRAFT_KEY, initialFormState);
   const [isFormDirty, setIsFormDirty] = useState(false);
   
-  const [verif, setVerif] = useState<{ state: "IDLE" | "PENDING" | "VERIFIED" | "FAILED", message: string }>({ state: (existingData as any)?.isNipherVerified ? 'VERIFIED' : "IDLE", message: (existingData as any)?.isNipherVerified ? 'Verification previously completed.' : '' });
+    const [verif, setVerif] = useState<{ state: "IDLE" | "PENDING" | "VERIFIED" | "FAILED", message: string }>({ state: existingData?.isNipherVerified ? 'VERIFIED' : "IDLE", message: existingData?.isNipherVerified ? 'Verification previously completed.' : '' });
   const [isVerifying, setIsVerifying] = useState({ email: false, phone: false, aadhaar: false, face: false });
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(form.photoUrl || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
+    const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
   const selfieInputRef = useRef<HTMLInputElement>(null);
 
   const [emailError, setEmailError] = useState('');
@@ -475,7 +475,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                         <p className="text-xs text-muted-foreground mt-1">This is the name customers will see.</p>
                     </div>
                   </div>
-                  {!existingData && (
+                  {isNewRegistration && (
                     <>
                     <div className="flex flex-col md:flex-row gap-2 items-end">
                       <div className="space-y-1 flex-grow">

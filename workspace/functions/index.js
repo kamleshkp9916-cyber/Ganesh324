@@ -1,12 +1,3 @@
-/**
- * functions/index.js
- *
- * Firebase Functions v2 (Node.js 20).
- *
- * This file contains both onCall and onRequest function handlers.
- * onRequest functions are wrapped with the 'cors' middleware to handle
- * preflight OPTIONS requests from the browser.
- */
 
 'use strict';
 
@@ -260,10 +251,6 @@ exports.generatePublicId = onDocumentWritten("users/{userId}", async (event) => 
 
 exports.checkEmailExists = onRequest((req, res) => {
     cors(req, res, async () => {
-        if (req.method === 'OPTIONS') {
-            res.status(204).send('');
-            return;
-        }
         if (req.method !== 'POST') {
             return res.status(405).json({ error: 'Use POST' });
         }
@@ -279,10 +266,6 @@ exports.checkEmailExists = onRequest((req, res) => {
 
 exports.checkPhoneExists = onRequest((req, res) => {
     cors(req, res, async () => {
-        if (req.method === 'OPTIONS') {
-            res.status(204).send('');
-            return;
-        }
         if (req.method !== 'POST') {
             return res.status(405).json({ error: 'Use POST' });
         }
