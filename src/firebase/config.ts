@@ -1,3 +1,4 @@
+
 // IMPORTANT: This file is used by both client and server code.
 // Do not import any client-side-only modules here.
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';

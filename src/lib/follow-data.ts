@@ -2,7 +2,7 @@
 "use client";
 
 import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, writeBatch, increment, limit, serverTimestamp } from "firebase/firestore";
-import { initializeFirebase } from "@/firebase"; // Changed import
+import { getFirestoreDb } from "@/lib/firebase-db";
 import { User } from "firebase/auth";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
@@ -100,7 +100,7 @@ export const getMockSellers = (): UserData[] => {
 export const getUserData = async (uid: string): Promise<UserData | null> => {
     if (!uid) return null;
     try {
-        const { firestore: db } = initializeFirebase();
+        const db = getFirestoreDb();
         const userDocRef = doc(db, "users", uid);
         const userDoc = await getDoc(userDocRef);
 
@@ -126,13 +126,13 @@ export const getUserData = async (uid: string): Promise<UserData | null> => {
 
 export const updateUserData = async (uid: string, updates: Partial<UserData>): Promise<void> => {
     if (!uid) return;
-    const { firestore: db } = initializeFirebase();
+    const db = getFirestoreDb();
     const userDocRef = doc(db, "users", uid);
     await setDoc(userDocRef, updates, { merge: true });
 };
 
 export const createUserData = async (user: User, role: 'customer' | 'seller' | 'admin', additionalData: Partial<UserData> = {}): Promise<void> => {
-    const { firestore: db } = initializeFirebase();
+    const db = getFirestoreDb();
     const userDocRef = doc(db, "users", user.uid);
     
     const ADMIN_EMAILS = ["kamleshkp9916@gmail.com"];
@@ -172,7 +172,7 @@ export const createUserData = async (user: User, role: 'customer' | 'seller' | '
 
 
 export const toggleFollow = async (currentUserId: string, targetUserId: string) => {
-    const { firestore: db } = initializeFirebase();
+    const db = getFirestoreDb();
     const currentUserRef = doc(db, "users", currentUserId);
     const targetUserRef = doc(db, "users", targetUserId);
     const followDocRef = doc(db, `users/${currentUserId}/following`, targetUserId);
@@ -194,7 +194,7 @@ export const toggleFollow = async (currentUserId: string, targetUserId: string) 
 };
 
 export const getFollowers = async (targetUserId: string): Promise<UserData[]> => {
-    const { firestore: db } = initializeFirebase();
+    const db = getFirestoreDb();
     const usersCollection = collection(db, 'users');
     const allUsersSnapshot = await getDocs(usersCollection);
     const followers: UserData[] = [];
@@ -213,7 +213,7 @@ export const getFollowers = async (targetUserId: string): Promise<UserData[]> =>
 };
 
 export const getFollowing = async (userId: string): Promise<UserData[]> => {
-    const { firestore: db } = initializeFirebase();
+    const db = getFirestoreDb();
     const followingCollectionRef = collection(db, `users/${userId}/following`);
     const followingSnapshot = await getDocs(followingCollectionRef);
     const followingIds = followingSnapshot.docs.map(doc => doc.id);
@@ -228,14 +228,14 @@ export const getFollowing = async (userId: string): Promise<UserData[]> => {
 
 export const isFollowing = async (currentUserId: string, targetUserId: string): Promise<boolean> => {
     if (currentUserId === targetUserId) return false;
-    const { firestore: db } = initializeFirebase();
+    const db = getFirestoreDb();
     const followDocRef = doc(db, `users/${currentUserId}/following`, targetUserId);
     const followDoc = await getDoc(followDocRef);
     return followDoc.exists();
 };
 
 export const getUserByDisplayName = async (displayName: string): Promise<UserData | null> => {
-    const { firestore: db } = initializeFirebase();
+    const db = getFirestoreDb();
     const usersRef = collection(db, 'users');
     const q = query(usersRef, where("displayName", "==", displayName), limit(1));
     const querySnapshot = await getDocs(q);
