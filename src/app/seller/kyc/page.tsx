@@ -15,7 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Check, AlertTriangle, Upload, ChevronLeft, ChevronRight, ShieldCheck, Building2, User2, MapPin, Banknote, FileSignature, ClipboardList, Eye, UserCheck, ShieldAlert, Gavel, Loader2, Send, Camera, QrCode, CheckCircle2, Save, RotateCcw } from "lucide-react";
-import { useAuth, useAuthActions } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
@@ -26,6 +26,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useAuthActions } from "@/hooks/use-auth";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { getFirestoreDb } from "@/lib/firebase-db";
@@ -210,14 +211,11 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const checkEmailExists = useCallback(async () => {
     if (!/.+@.+\..+/.test(form.email) || form.email === existingData?.email) return;
     try {
-        const response = await fetch('/api/check-email', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: form.email }),
-        });
-        if (!response.ok) throw new Error('Network response was not ok.');
-        const result = await response.json();
-        if (result.exists) {
+        const functions = getFunctions(getFirestoreDb().app);
+        const checkEmail = httpsCallable(functions, 'checkEmailExists');
+        const result: any = await checkEmail({ email: form.email });
+
+        if (result.data.exists) {
             setEmailError("This email is already registered. Please use a different one.");
         } else {
             setEmailError("");
@@ -231,14 +229,11 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const checkPhoneExists = useCallback(async () => {
     if (!/^\d{10}$/.test(form.phone) || `+91 ${form.phone}` === existingData?.phone) return;
     try {
-        const response = await fetch('/api/check-phone', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone: `+91 ${form.phone}` }),
-        });
-        if (!response.ok) throw new Error('Network response was not ok.');
-        const result = await response.json();
-        if (result.exists) {
+        const functions = getFunctions(getFirestoreDb().app);
+        const checkPhone = httpsCallable(functions, 'checkPhoneExists');
+        const result: any = await checkPhone({ phone: `+91 ${form.phone}` });
+
+        if (result.data.exists) {
             setPhoneError("This phone number is already registered. Please use a different one.");
         } else {
             setPhoneError("");
@@ -260,12 +255,9 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const handleSendOtp = async (type: 'email' | 'phone') => {
     setOtpSent(prev => ({...prev, [type]: true}));
     try {
-        const response = await fetch('/api/send-otp', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type, target: type === 'email' ? form.email : `+91${form.phone}` }),
-        });
-        if (!response.ok) throw new Error("Server error");
+        const functions = getFunctions(getFirestoreDb().app);
+        const sendCode = httpsCallable(functions, 'sendVerificationCode');
+        await sendCode({ type, target: type === 'email' ? form.email : `+91${form.phone}` });
         toast({ title: `OTP Sent to your ${type}` });
         setResendCooldown(prev => ({...prev, [type]: RESEND_COOLDOWN}));
     } catch (error: any) {
@@ -280,18 +272,15 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     
     setIsVerifying(prev => ({...prev, [type]: true}));
     try {
-        const response = await fetch('/api/verify-otp', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: form.email, otp }), // Using email as key for both for simplicity here
-        });
+        const functions = getFunctions(getFirestoreDb().app);
+        const verifyCode = httpsCallable(functions, 'verifyCode');
+        const result: any = await verifyCode({ target: type === 'email' ? form.email : `+91${form.phone}`, otp });
 
-        const result = await response.json();
-        if (response.ok) {
+        if (result.data.success) {
             setField(`${type}Verified`, true);
             toast({ title: `${type.charAt(0).toUpperCase() + type.slice(1)} Verified!` });
         } else {
-            throw new Error(result.error || 'Invalid OTP');
+            throw new Error(result.data.error?.message || 'Invalid OTP');
         }
     } catch (error: any) {
         toast({ variant: "destructive", title: "Verification Failed", description: error.message });
@@ -954,5 +943,6 @@ export default function KYCPage() {
         </div>
     );
 }
+
 
     
