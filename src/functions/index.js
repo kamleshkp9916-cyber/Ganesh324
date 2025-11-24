@@ -81,7 +81,7 @@ async function handleStartVerification(req, res) {
 
 async function handleStatus(req, res) {
     try {
-        const sessionId = req.query.sessionId;
+        const sessionId = req.query.sessionId || req.body.sessionId;
         if (!sessionId) return res.status(400).json({ error: "sessionId required" });
 
         const snap = await db.collection("idVerifications").doc(String(sessionId)).get();
@@ -108,11 +108,11 @@ exports.verifyFlow = onRequest(
   { secrets: ["ODIDIT_API_KEY"], cors: true },
   async (req, res) => {
     cors(req, res, async () => {
-        // Route based on a query parameter or path segment
-        if (req.body.action === 'startVerification') {
+        const action = req.body.action || req.query.action;
+        if (action === 'startVerification') {
             return handleStartVerification(req, res);
         }
-        if (req.body.action === 'status') {
+        if (action === 'status') {
             return handleStatus(req, res);
         }
         // Default response if no route matches
@@ -448,3 +448,5 @@ exports.notifyDeliveryPartner = onRequest({ cors: true }, async (req, res) => {
 
     res.status(200).json({ success: true, message: `Delivery partner notified for order ${orderId}` });
 });
+
+    

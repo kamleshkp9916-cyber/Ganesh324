@@ -15,7 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Check, AlertTriangle, Upload, ChevronLeft, ChevronRight, ShieldCheck, Building2, User2, MapPin, Banknote, FileSignature, ClipboardList, Eye, UserCheck, ShieldAlert, Gavel, Loader2, Send, Camera, QrCode, CheckCircle2, Save, RotateCcw } from "lucide-react";
-import { useAuth, useAuthActions } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
@@ -26,11 +26,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useAuthActions } from "@/lib/auth";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { getFirestoreDb } from "@/lib/firebase-db";
 import { Skeleton } from "@/components/ui/skeleton";
-import { signInAnonymously, getAuth } from "firebase/auth";
+import { signInAnonymously } from "firebase/auth";
 
 const SELLER_KYC_DRAFT_KEY = 'sellerKycDraft';
 const SELLER_KYC_STEP_KEY = 'sellerKycStep';
@@ -65,7 +66,7 @@ const steps = [
 ];
 
 function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => void, existingData?: UserData | null }) {
-  const { user, auth } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const { handleSellerSignUp } = useAuthActions();
   
@@ -110,13 +111,13 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const [form, setForm] = useLocalStorage<any>(SELLER_KYC_DRAFT_KEY, initialFormState);
   const [isFormDirty, setIsFormDirty] = useState(false);
   
-    const [verif, setVerif] = useState<{ state: "IDLE" | "PENDING" | "VERIFIED" | "FAILED", message: string }>({ state: (existingData as any)?.isNipherVerified ? 'VERIFIED' : "IDLE", message: (existingData as any)?.isNipherVerified ? 'Verification previously completed.' : '' });
+  const [verif, setVerif] = useState<{ state: "IDLE" | "PENDING" | "VERIFIED" | "FAILED", message: string }>({ state: (existingData as any)?.isNipherVerified ? 'VERIFIED' : "IDLE", message: (existingData as any)?.isNipherVerified ? 'Verification previously completed.' : '' });
   const [isVerifying, setIsVerifying] = useState({ email: false, phone: false, aadhaar: false, face: false });
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(form.photoUrl || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-    const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
+  const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
   const selfieInputRef = useRef<HTMLInputElement>(null);
 
   const [emailError, setEmailError] = useState('');
@@ -180,7 +181,12 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   }, [verif.state]);
 
   const canGoToStep = (stepIndex: number) => {
-    return true; // Temporarily enabled for UI review
+    if (stepIndex === 1) return isStep1Valid;
+    if (stepIndex === 2) return isStep2Valid;
+    if (stepIndex === 3) return isStep3Valid;
+    if (stepIndex === 4) return isStep4Valid;
+    if (stepIndex === 5) return isStep5Valid;
+    return true; 
   }
 
   const progress = useMemo(() => Math.round(((current + 1) / (steps.length)) * 100), [current]);
@@ -251,8 +257,20 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   }, [form.pan]);
 
   const handleSendOtp = async (type: 'email' | 'phone') => {
-    setOtpSent(prev => ({...prev, [type]: true}));
-    toast({ title: `OTP Sent to your ${type}` });
+    const target = type === 'email' ? form.email : form.phone;
+    setIsVerifying(prev => ({...prev, [type]: true}));
+    try {
+        const functions = getFunctions(getFirestoreDb().app);
+        const sendCode = httpsCallable(functions, 'sendVerificationCode');
+        await sendCode({ target, type });
+        toast({ title: `OTP Sent to your ${type}` });
+        setOtpSent(prev => ({...prev, [type]: true}));
+        setResendCooldown(prev => ({...prev, [type]: RESEND_COOLDOWN}));
+    } catch (error: any) {
+        toast({ variant: "destructive", title: "Failed to Send OTP", description: error.message });
+    } finally {
+        setIsVerifying(prev => ({...prev, [type]: false}));
+    }
   };
 
   const handleVerifyOtp = async (type: 'email' | 'phone') => {
@@ -267,7 +285,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     try {
         const functions = getFunctions(getFirestoreDb().app);
         const verifyCode = httpsCallable(functions, 'verifyCode');
-        const result: any = await verifyCode({ target: type === 'email' ? form.email : `+91${form.phone}`, otp });
+        const result: any = await verifyCode({ target: type === 'email' ? form.email : form.phone, otp });
 
         if (result.data.success) {
             setField(`${type}Verified`, true);
@@ -320,8 +338,8 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     setVerif({ state: "PENDING", message: "Contacting verification service..." });
     try {
         const functions = getFunctions();
-        const startVerification = httpsCallable(functions, 'verifyFlow');
-        const response: any = await startVerification({ action: 'startVerification', userId: user.uid });
+        const verifyFlow = httpsCallable(functions, 'verifyFlow');
+        const response: any = await verifyFlow({ action: 'startVerification', userId: user.uid });
         const { sessionId, qrDataUrl } = response.data;
         
         setQrDataUrl(qrDataUrl);
@@ -458,6 +476,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                         <p className="text-xs text-muted-foreground mt-1">This is the name customers will see.</p>
                     </div>
                   </div>
+                  {/* OTP flow is only for new sign-ups */}
                   {!existingData && (
                     <>
                     <div className="flex flex-col md:flex-row gap-2 items-end">
@@ -471,7 +490,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                           {form.emailVerified ? 'Verified' : resendCooldown.email > 0 ? `Resend in ${resendCooldown.email}s` : 'Send OTP'}
                       </Button>
                     </div>
-                     {otpSent.email && !form.emailVerified && (
+                    {otpSent.email && !form.emailVerified && (
                         <div className="flex items-end gap-2">
                             <InputOTP maxLength={6} value={form.emailOtp} onChange={(val) => setField("emailOtp", val)}>
                                 <InputOTPGroup>
@@ -485,6 +504,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                             </Button>
                         </div>
                     )}
+
                     <div className="flex flex-col md:flex-row gap-2 items-end">
                         <div className="space-y-1 flex-grow">
                             <label className="text-sm font-medium">Phone</label>
@@ -496,7 +516,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                           {form.phoneVerified ? 'Verified' : resendCooldown.phone > 0 ? `Resend in ${resendCooldown.phone}s` : 'Send OTP'}
                         </Button>
                     </div>
-                    {otpSent.phone && !form.phoneVerified && (
+                     {otpSent.phone && !form.phoneVerified && (
                         <div className="flex items-end gap-2">
                             <InputOTP maxLength={6} value={form.phoneOtp} onChange={(val) => setField("phoneOtp", val)}>
                                 <InputOTPGroup>
@@ -795,13 +815,10 @@ export default function KYCPage() {
     
     useEffect(() => {
         setIsClient(true);
-    }, []);
-    
-    useEffect(() => {
-        if (isClient && authReady && !user) {
+        if (!user && authReady) {
             initiateAnonymousSignIn();
         }
-    }, [isClient, authReady, user, initiateAnonymousSignIn]);
+    }, [isClient, user, authReady, initiateAnonymousSignIn]);
     
     const initialProgress = useMemo(() => {
         return Math.round(((0 + 1) / (steps.length)) * 100);
@@ -819,7 +836,7 @@ export default function KYCPage() {
         router.refresh(); // This will re-trigger the check in useEffect
     };
 
-    if (!isClient || !authReady) {
+    if (!isClient || !authReady || !user) {
         return (
             <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
                 <LoadingSpinner />
@@ -936,3 +953,5 @@ export default function KYCPage() {
         </div>
     );
 }
+
+    

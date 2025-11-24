@@ -24,28 +24,26 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const firebaseContext = useContext(FirebaseContext);
+  const router = useRouter();
+  const { toast } = useToast();
+
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [authReady, setAuthReady] = useState(false);
-  
-  const router = useRouter();
-  const { toast } = useToast();
 
   const actions = useMemo(() => {
-    if (firebaseContext?.auth && firebaseContext?.firebaseApp && router && toast) {
+    if (firebaseContext?.auth && firebaseContext?.firebaseApp) {
       return getAuthActions(firebaseContext.auth, firebaseContext.firebaseApp, router, toast);
     }
-    // Return a dummy object if context is not ready, to prevent errors on initial render
-    return getAuthActions({} as Auth, {} as FirebaseApp, {} as typeof router, () => {});
+    // Return a dummy object if context is not ready
+    return getAuthActions({} as Auth, {} as FirebaseApp, router, toast);
   }, [firebaseContext, router, toast]);
 
   useEffect(() => {
     if (!firebaseContext || !firebaseContext.auth || !firebaseContext.firestore) {
-      // Still waiting for Firebase services from the parent provider.
-      // We set authReady to false because we can't check auth state yet.
-      setAuthReady(false);
       setLoading(true);
+      setAuthReady(false);
       return;
     }
     
@@ -112,3 +110,5 @@ export const useAuthActions = () => {
     }
     return context.actions;
 }
+
+    
