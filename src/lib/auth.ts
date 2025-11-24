@@ -2,7 +2,7 @@
 "use client";
 
 import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, sendPasswordResetEmail, User, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, getAdditionalUserInfo, updateProfile, setPersistence, browserSessionPersistence } from "firebase/auth";
-import { useFirebase } from '@/firebase'; // Changed import
+import { useFirebase } from '@/firebase';
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { createUserData, updateUserData, UserData, getUserData } from "./follow-data";
@@ -320,3 +320,5 @@ export function useAuthActions() {
 
     return { signOut, sendPasswordResetLink, handleGoogleSignIn, handleEmailSignIn, handleCustomerSignUp, handleAdminSignUp, handleSellerSignUp, updateUserProfile };
 }
+
+    
