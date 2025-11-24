@@ -1,0 +1,4 @@
+
+// This file is obsolete and will be removed. The logic has been moved to /api/check-user-exists/route.ts
+
+    

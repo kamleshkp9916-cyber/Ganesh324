@@ -26,83 +26,59 @@ function makeId(len = 12) {
   return s;
 }
 
-exports.checkUserExists = onCall(async (request) => {
-    const { field, value } = request.data;
-
-    if (!field || !value) {
-        throw new HttpsError('invalid-argument', 'The function must be called with "field" and "value" arguments.');
-    }
-
-    try {
-        const usersRef = db.collection('users');
-        const querySnapshot = await usersRef.where(field, '==', value).limit(1).get();
-        return { exists: !querySnapshot.empty };
-    } catch (error) {
-        console.error("Error in checkUserExists:", error);
-        throw new HttpsError('internal', 'An error occurred while checking user existence.');
-    }
-});
-
-
-async function handleStartVerification(req, res) {
-  try {
-    const { userId } = req.body || {};
-    if (!userId) return res.status(400).json({ error: "userId is required" });
-
-    const sessionId = makeId(16);
-    const sessionRef = db.collection("idVerifications").doc(sessionId);
-    await sessionRef.set({
-      userId,
-      status: "pending",
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
-
-    const mobileUrl = `https://your-deployed-app-url/verify-mobile?sessionId=${sessionId}`;
-    const qrDataUrl = await QRCode.toDataURL(mobileUrl, { margin: 2, scale: 6 });
-
-    return res.status(200).json({ sessionId, qrDataUrl });
-
-  } catch (err) {
-    console.error("startVerification error", err);
-    return res.status(500).json({ error: err.message || "internal" });
-  }
-}
-
-async function handleStatus(req, res) {
-    try {
-        const sessionId = req.query.sessionId || req.body.sessionId;
-        if (!sessionId) return res.status(400).json({ error: "sessionId required" });
-
-        const snap = await db.collection("idVerifications").doc(String(sessionId)).get();
-        if (!snap.exists) return res.status(404).json({ error: "session-not-found" });
-
-        const data = snap.data() || {};
-        
-        if (data.status === 'pending' && Math.random() > 0.8) {
-            await snap.ref.update({ status: 'VERIFIED' });
-            data.status = 'VERIFIED';
-        }
-
-        return res.status(200).json({ sessionId, status: data.status || "unknown" });
-    } catch (err) {
-        console.error("status error", err);
-        return res.status(500).json({ error: err.message || "internal" });
-    }
-}
-
-
 exports.verifyFlow = onRequest(
   { secrets: ["ODIDIT_API_KEY"], cors: true },
   async (req, res) => {
-    // This is the correct way to handle CORS with the `cors` middleware
-    cors(req, res, () => {
+    cors(req, res, async () => {
         const action = req.body.action || req.query.action;
+
         if (action === 'startVerification') {
-            return handleStartVerification(req, res);
+            try {
+                const { userId } = req.body || {};
+                if (!userId) return res.status(400).json({ error: "userId is required" });
+
+                const sessionId = makeId(16);
+                const sessionRef = db.collection("idVerifications").doc(sessionId);
+                await sessionRef.set({
+                userId,
+                status: "pending",
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                });
+
+                const mobileUrl = `https://your-deployed-app-url/verify-mobile?sessionId=${sessionId}`;
+                const qrDataUrl = await QRCode.toDataURL(mobileUrl, { margin: 2, scale: 6 });
+
+                return res.status(200).json({ sessionId, qrDataUrl });
+
+            } catch (err) {
+                console.error("startVerification error", err);
+                return res.status(500).json({ error: err.message || "internal" });
+            }
         }
+
         if (action === 'status') {
-            return handleStatus(req, res);
+            try {
+                const sessionId = req.query.sessionId || req.body.sessionId;
+                if (!sessionId) return res.status(400).json({ error: "sessionId required" });
+
+                const snap = await db.collection("idVerifications").doc(String(sessionId)).get();
+                if (!snap.exists) return res.status(404).json({ error: "session-not-found" });
+
+                const data = snap.data() || {};
+                
+                // Simulate verification for demo purposes
+                if (data.status === 'pending' && Math.random() > 0.8) {
+                    await snap.ref.update({ status: 'VERIFIED' });
+                    data.status = 'VERIFIED';
+                }
+
+                return res.status(200).json({ sessionId, status: data.status || "unknown" });
+            } catch (err) {
+                console.error("status error", err);
+                return res.status(500).json({ error: err.message || "internal" });
+            }
         }
+
         return res.status(404).send('Not Found');
     });
   }
@@ -251,3 +227,5 @@ exports.notifyDeliveryPartner = onRequest({ cors: true }, async (req, res) => {
 
     res.status(200).json({ success: true, message: `Delivery partner notified for order ${orderId}` });
 });
+
+    

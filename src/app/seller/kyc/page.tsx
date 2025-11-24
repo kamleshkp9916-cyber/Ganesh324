@@ -211,17 +211,19 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   
   const checkUserExists = async (field: 'email' | 'phone', value: string): Promise<boolean> => {
     try {
-        const functions = getFunctions(getFirestoreDb().app);
-        const checkUser = httpsCallable(functions, 'checkUserExists');
-        const result: any = await checkUser({ field, value });
-        return result.data.exists;
-    } catch (e) {
-      console.error("Validation error:", e);
-      toast({
-        variant: "destructive",
-        title: "Validation Error",
-        description: `Could not validate ${field}. Please try again.`
+      const response = await fetch('/api/check-user-exists', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ field, value }),
       });
+      if (!response.ok) {
+        throw new Error('Network response was not ok.');
+      }
+      const data = await response.json();
+      return data.exists;
+    } catch (e) {
+      console.error("Email validation error:", e);
+      setEmailError("Could not validate email. Please try again.");
       return false; // Assume not exists on error to avoid blocking user
     }
   };
