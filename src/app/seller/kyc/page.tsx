@@ -15,7 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Check, AlertTriangle, Upload, ChevronLeft, ChevronRight, ShieldCheck, Building2, User2, MapPin, Banknote, FileSignature, ClipboardList, Eye, UserCheck, ShieldAlert, Gavel, Loader2, Send, Camera, QrCode, CheckCircle2, Save, RotateCcw } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth, useAuthActions } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
@@ -26,7 +26,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useAuthActions } from "@/hooks/use-auth";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { getFirestoreDb } from "@/lib/firebase-db";
@@ -465,35 +464,13 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                         <p className="text-xs text-muted-foreground mt-1">This is the name customers will see.</p>
                     </div>
                   </div>
+                  
                   {isNewRegistration && (
                     <>
-                    <div className="grid md:grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                            <label className="text-sm font-medium">Email</label>
-                            <Input value={form.email} onChange={(e) => { setEmailError(''); setField("email", e.target.value); }} onBlur={checkEmailExists} placeholder="you@shop.com" />
-                            {emailError ? <p className="text-xs text-destructive mt-1">{emailError}</p> : <p className="text-xs text-muted-foreground mt-1">This email will be used for login and official communication.</p>}
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-sm font-medium">Phone</label>
-                            <Input value={form.phone} onChange={(e) => { setPhoneError(''); setField("phone", e.target.value.replace(/[^0-9]/g, "").slice(0,10)); }} onBlur={checkPhoneExists} placeholder="10‑digit mobile" />
-                            {phoneError ? <p className="text-xs text-destructive mt-1">{phoneError}</p> : <p className="text-xs text-muted-foreground mt-1">Used for verification and support communication.</p>}
-                        </div>
-                    </div>
-                    <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-sm font-medium">Password</label>
-                          <Input type="password" value={form.password} onChange={(e)=>setField("password", e.target.value)} placeholder="Minimum 8 characters"/>
-                           {form.password && form.password.length < 8 && <p className="text-xs text-destructive mt-1">Password must be at least 8 characters.</p>}
-                        </div>
-                         <div>
-                          <label className="text-sm font-medium">Confirm Password</label>
-                          <Input type="password" value={form.confirmPassword} onChange={(e)=>setField("confirmPassword", e.target.value)} placeholder="Re-enter your password"/>
-                          {form.confirmPassword && form.password !== form.confirmPassword && <p className="text-xs text-destructive mt-1">Passwords do not match.</p>}
-                        </div>
-                    </div>
+                        {/* No OTP verification UI here anymore */}
                     </>
                   )}
-
+                  
                   <div>
                     <label className="text-sm font-medium">About shop</label>
                     <Textarea value={form.about} onChange={(e)=>setField("about", e.target.value)} placeholder="Short bio"/>
@@ -907,3 +884,5 @@ export default function KYCPage() {
         </div>
     );
 }
+
+    
