@@ -1,15 +1,16 @@
 
 "use client";
 
-import { useAuth, useAuthActions } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { MailCheck } from "lucide-react";
+import { MailCheck, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { sendEmailVerification, User } from "firebase/auth";
+import { useAuthActions } from "@/hooks/use-auth";
 
 export default function VerifyEmailPage() {
     const { user, userData, loading } = useAuth();
@@ -115,11 +116,11 @@ export default function VerifyEmailPage() {
                     </p>
                     <div className="flex flex-col gap-4">
                         <Button onClick={handleContinue} disabled={isChecking}>
-                            {isChecking ? <Loader2 className="h-4 w-4 mr-2"/> : null}
+                            {isChecking ? <Loader2 className="h-4 w-4 mr-2 animate-spin"/> : null}
                             Continue to App
                         </Button>
                         <Button variant="outline" onClick={handleResendVerification} disabled={isResending}>
-                            {isResending ? <Loader2 className="h-4 w-4 mr-2"/> : null}
+                            {isResending ? <Loader2 className="h-4 w-4 mr-2 animate-spin"/> : null}
                             Resend Verification Email
                         </Button>
                         <Button variant="ghost" onClick={signOut}>
