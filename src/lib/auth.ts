@@ -13,7 +13,7 @@ async function triggerUpdateLastLogin(auth: Auth) {
     if (!auth.currentUser) return;
 
     try {
-        const functions = getFunctions(auth.app);
+        const functions = getFunctions(getFirestoreDb().app);
         const updateLastLogin = httpsCallable(functions, 'updateLastLogin');
         await updateLastLogin();
     } catch (error) {
@@ -182,7 +182,7 @@ export function getAuthActions(
     };
     
     const handleAdminSignUp = async (values: any) => {
-        const functions = getFunctions(auth.app);
+        const functions = getFunctions(getFirestoreDb().app);
         const createAdmin = httpsCallable(functions, 'createAdminUser');
         try {
             await createAdmin(values);
@@ -228,11 +228,9 @@ export function getAuthActions(
             // This will now update the existing anonymous user's document with the full data
             await updateUserData(user.uid, sellerData as UserData);
             
-            await sendEmailVerification(user);
-            
             toast({
                 title: "Registration Complete!",
-                description: "Your seller account has been created. A verification email has been sent.",
+                description: "Your seller application has been submitted for review.",
             });
 
         } catch (error: any) {
@@ -255,6 +253,7 @@ export function getAuthActions(
     
     const initiateAnonymousSignIn = async () => {
         try {
+            if (auth.currentUser) return; // Already logged in (even anonymously)
             await signInAnonymously(auth);
         } catch (error) {
             console.error("Anonymous sign-in failed:", error);

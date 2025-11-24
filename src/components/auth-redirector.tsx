@@ -40,7 +40,7 @@ export function AuthRedirector() {
     
     if (user) {
         // --- User is LOGGED IN ---
-        if (!user.emailVerified && pathname !== emailVerificationPath) {
+        if (!user.emailVerified && user.providerData.some(p => p.providerId === 'password') && pathname !== emailVerificationPath) {
             targetPath = emailVerificationPath;
         } else if (userData) {
             const { role } = userData;
@@ -96,3 +96,5 @@ export function AuthRedirector() {
 
   return null;
 }
+
+    

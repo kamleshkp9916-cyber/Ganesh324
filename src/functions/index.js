@@ -1,14 +1,13 @@
 
 'use strict';
 
-const admin = require('firebase-admin');
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onRequest } = require('firebase-functions/v2/onRequest');
 const { onDocumentWritten } = require("firebase-functions/v2/firestore");
 const crypto = require('crypto');
 const cors = require('cors')({origin: true});
 const QRCode = require("qrcode");
-
+const admin = require('firebase-admin');
 
 /**
  * Admin SDK initialization
