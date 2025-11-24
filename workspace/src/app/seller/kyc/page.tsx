@@ -155,10 +155,12 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     return () => clearTimeout(timer);
   }, [resendCooldown.phone]);
 
+  const isNewRegistration = !existingData;
+
   const isStep1Valid = useMemo(() => {
-    const passwordValid = !existingData ? (form.password.length >= 8 && form.password === form.confirmPassword) : true;
+    const passwordValid = isNewRegistration ? (form.password.length >= 8 && form.password === form.confirmPassword) : true;
     return form.legalName && form.displayName && /.+@.+\..+/.test(form.email) && /^\d{10}$/.test(form.phone) && form.photoUrl && passwordValid && form.emailVerified && form.phoneVerified && !emailError && !phoneError;
-  }, [form, emailError, phoneError, existingData]);
+  }, [form, emailError, phoneError, isNewRegistration]);
 
   const isStep2Valid = useMemo(() => {
     return form.bizType && /.+@.+\..+/.test(form.supportEmail) && /^\d{10}$/.test(form.supportPhone);
@@ -181,7 +183,12 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   }, [verif.state]);
 
   const canGoToStep = (stepIndex: number) => {
-    return true; // Temporarily enabled for UI review
+    if (stepIndex === 1) return isStep1Valid;
+    if (stepIndex === 2) return isStep2Valid;
+    if (stepIndex === 3) return isStep3Valid;
+    if (stepIndex === 4) return isStep4Valid;
+    if (stepIndex === 5) return isStep5Valid;
+    return true; 
   }
 
   const progress = useMemo(() => Math.round(((current + 1) / (steps.length)) * 100), [current]);
@@ -204,14 +211,10 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const checkEmailExists = useCallback(async () => {
     if (!/.+@.+\..+/.test(form.email) || form.email === existingData?.email) return;
     try {
-        const response = await fetch('https://us-central1-streamcart-login.cloudfunctions.net/checkEmailExists', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: form.email }),
-        });
-        if (!response.ok) throw new Error('Network response was not ok.');
-        const result = await response.json();
-        if (result.exists) {
+        const functions = getFunctions(getFirestoreDb().app);
+        const checkEmail = httpsCallable(functions, 'checkEmailExists');
+        const result: any = await checkEmail({ email: form.email });
+        if (result.data.exists) {
             setEmailError("This email is already registered. Please use a different one.");
         } else {
             setEmailError("");
@@ -225,14 +228,10 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const checkPhoneExists = useCallback(async () => {
     if (!/^\d{10}$/.test(form.phone) || `+91 ${form.phone}` === existingData?.phone) return;
     try {
-        const response = await fetch('https://us-central1-streamcart-login.cloudfunctions.net/checkPhoneExists', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone: `+91 ${form.phone}` }),
-        });
-        if (!response.ok) throw new Error('Network response was not ok.');
-        const result = await response.json();
-        if (result.exists) {
+        const functions = getFunctions(getFirestoreDb().app);
+        const checkPhone = httpsCallable(functions, 'checkPhoneExists');
+        const result: any = await checkPhone({ phone: `+91 ${form.phone}` });
+        if (result.data.exists) {
             setPhoneError("This phone number is already registered. Please use a different one.");
         } else {
             setPhoneError("");
@@ -323,26 +322,33 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const canSubmit = form.termsAccepted && verif.state === "VERIFIED";
 
   const handleGenerateVerification = async () => {
+    if (!user || !user.uid) {
+        toast({variant: 'destructive', title: 'Authentication Error', description: 'Could not get a temporary user ID. Please refresh and try again.'});
+        return;
+    }
     setVerif({ state: "PENDING", message: "Contacting verification service..." });
     try {
         const functions = getFunctions(getFirestoreDb().app);
-        const createSession = httpsCallable(functions, 'createOdiditSession');
-        const response: any = await createSession({ userId: user?.uid });
-        const { sessionId, qrCodeUrl } = response.data;
+        const verifyFlow = httpsCallable(functions, 'verifyFlow');
+        const response: any = await verifyFlow({ action: 'startVerification', userId: user.uid });
+        const { sessionId, qrDataUrl } = response.data;
         
-        setQrCodeUrl(qrCodeUrl);
+        setQrCodeUrl(qrDataUrl);
         setVerif({ state: "PENDING", message: "Scan the QR code with your phone to complete verification." });
         
         const pollInterval = setInterval(async () => {
             try {
-                 const checkSession = httpsCallable(functions, 'checkOdiditSession');
-                 const result: any = await checkSession({ sessionId });
-
+                const statusFunction = httpsCallable(functions, 'verifyFlow');
+                const result: any = await statusFunction({ action: 'status', sessionId });
+                
                 if (result.data.status === 'VERIFIED') {
                     clearInterval(pollInterval);
                     setVerif({ state: "VERIFIED", message: "Verification successful! You can now proceed." });
                     toast({ title: "Verification Successful!", description: "Proceeding to the next step." });
                     setTimeout(() => next(), 1500);
+                } else if (result.data.status === 'FAILED' || result.data.status === 'ERROR') {
+                     clearInterval(pollInterval);
+                     setVerif({ state: "FAILED", message: "Verification failed. Please try again." });
                 }
             } catch (error) {
                 console.error("Polling error:", error);
@@ -351,9 +357,9 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
             }
         }, 3000);
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error creating 0DIDit session:", error);
-        setVerif({ state: "FAILED", message: "Could not start verification. Please try again." });
+        setVerif({ state: "FAILED", message: error.message || "Could not start verification. Please try again." });
     }
   };
   
@@ -461,7 +467,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                         <p className="text-xs text-muted-foreground mt-1">This is the name customers will see.</p>
                     </div>
                   </div>
-                  {!existingData && (
+                  {isNewRegistration && (
                     <>
                     <div className="flex flex-col md:flex-row gap-2 items-end">
                       <div className="space-y-1 flex-grow">
