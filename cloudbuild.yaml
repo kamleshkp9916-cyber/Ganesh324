@@ -1,3 +1,7 @@
+timeout: '1200s'
+options:
+  logging: CLOUD_LOGGING_ONLY
+
 steps:
 # 1) Use node image to install dependencies
 - name: 'node:18'
